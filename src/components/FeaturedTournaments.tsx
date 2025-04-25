@@ -36,8 +36,6 @@ const FeaturedTournaments = () => {
       .then((data) => {
         if (!isMounted) return; // Exit if component unmounted
 
-        console.log("Raw data received in FeaturedTournaments.tsx:", data);
-
         // Check if data is an array before processing
         if (!Array.isArray(data)) {
           console.error("API did not return an array:", data);
@@ -68,8 +66,6 @@ const FeaturedTournaments = () => {
             return acc;
           }, {})
         );
-
-        console.log("Grouped data in FeaturedTournaments.tsx:", grouped);
 
         setFestivals(grouped);
         setIsLoading(false);

@@ -50,8 +50,6 @@ const Events = () => {
       .then((data) => {
         if (!isMounted) return; // Exit if component unmounted
 
-        console.log("Raw data received in Events.tsx:", data);
-
         // Check if data is an array before processing
         if (!Array.isArray(data)) {
           console.error("API did not return an array:", data);
@@ -82,8 +80,6 @@ const Events = () => {
             return acc;
           }, {})
         );
-
-        console.log("Grouped data in Events.tsx:", grouped);
 
         setEvents(grouped);
         setIsLoading(false);
