@@ -23,23 +23,45 @@ const FeaturedTournaments = () => {
   const [festivals, setFestivals] = useState<any[]>([]);
 
   useEffect(() => {
+    let isMounted = true; // Prevent state update on unmounted component
     setIsLoading(true);
     fetch("/api/events.php")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          // Throw an error to be caught by .catch() if response not OK
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then((data) => {
+        if (!isMounted) return; // Exit if component unmounted
+
+        // Check if data is an array before processing
+        if (!Array.isArray(data)) {
+          console.error("API did not return an array:", data);
+          throw new Error("Invalid data format received from API.");
+        }
+
         // Group by clubid (festival)
         const grouped = Object.values(
           data.reduce((acc: any, item: any) => {
-            if (!acc[item.clubid]) {
-              acc[item.clubid] = {
-                clubid: item.clubid,
-                clubname: item.clubname,
-                club_imgurl: item.club_imgurl,
-                club_logourl: item.club_logourl,
-                club_description: item.club_description,
-                club_city: item.club_city,
-                club_event_duration: item.club_event_duration,
-              };
+            // Basic check for item structure
+            if (item && item.clubid) {
+              if (!acc[item.clubid]) {
+                acc[item.clubid] = {
+                  clubid: item.clubid,
+                  clubname: item.clubname,
+                  club_imgurl: item.club_imgurl,
+                  club_logourl: item.club_logourl,
+                  club_description: item.club_description,
+                  club_city: item.club_city,
+                  club_event_duration: item.club_event_duration,
+                  // No tournaments array needed here
+                };
+              }
+              // No need to push individual tournaments here
+            } else {
+              console.warn("Skipping invalid item during grouping:", item);
             }
             return acc;
           }, {})
@@ -47,8 +69,19 @@ const FeaturedTournaments = () => {
         setFestivals(grouped);
         setIsLoading(false);
       })
-      .catch(() => setIsLoading(false));
-  }, []);
+      .catch((error) => {
+        if (!isMounted) return; // Exit if component unmounted
+        console.error("Error fetching or processing featured festivals:", error);
+        // Ensure state is reset to empty array on error
+        setFestivals([]);
+        setIsLoading(false);
+      });
+
+      // Cleanup function to set isMounted to false when component unmounts
+      return () => {
+          isMounted = false;
+      };
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   return (
     <section className="py-16 md:py-24 bg-background" id="tournaments">
