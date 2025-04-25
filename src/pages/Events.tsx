@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { format } from "date-fns";
+import { Link } from "react-router-dom";
 
 // --- Skeleton Component for Event Card ---
 const EventCardSkeleton = () => (
@@ -124,9 +125,10 @@ const Events = () => {
                     <EventCardSkeleton key={index} />
                   ))
                 : events.map((festival) => (
-                    <div
+                    <Link
+                      to={`/festival/${festival.clubid}`}
                       key={festival.clubid}
-                      className="card-highlight p-6 flex flex-col md:flex-row gap-6 border border-white/10 hover:border-primary/50 transition-all"
+                      className="block card-highlight p-6 flex flex-col md:flex-row gap-6 border border-white/10 hover:border-primary/50 transition-all group"
                     >
                       <div className="md:w-1/3">
                         {festival.club_imgurl ? (
@@ -177,7 +179,7 @@ const Events = () => {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   ))}
             </div>
           </div>

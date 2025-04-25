@@ -102,16 +102,17 @@ const FeaturedTournaments = () => {
                 <div className="max-w-full w-full mx-auto" key={"skeleton-" + index}><TournamentCardSkeleton /></div>
               ))
             : festivals.slice(0, 6).map(festival => (
-                <div
-                  key={festival.clubid}
-                  className="tournament-card overflow-hidden h-[380px] flex flex-col relative max-w-full w-full mx-auto"
+                <Link 
+                  to={`/festival/${festival.clubid}`} 
+                  key={festival.clubid} 
+                  className="block tournament-card overflow-hidden h-[380px] flex flex-col relative max-w-full w-full mx-auto group"
                 >
                   <div className="relative h-48 overflow-hidden">
                     {festival.club_imgurl ? (
                       <img
                         src={festival.club_imgurl.replace(/^http:/, 'https:')}
                         alt={festival.clubname}
-                        className="w-full h-full object-cover transition-transform hover:scale-105"
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
                       />
                     ) : (
                       <div className="w-full h-full bg-muted"></div>
@@ -139,7 +140,7 @@ const FeaturedTournaments = () => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
         </div>
         <div className="mt-10 flex justify-center md:hidden">
