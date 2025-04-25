@@ -1,0 +1,290 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    --background: 215 30% 15%;
+    --foreground: 0 0% 100%;
+
+    --card: 215 30% 18%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 215 30% 18%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 0 80% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217 30% 25%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 215 30% 25%;
+    --muted-foreground: 0 0% 70%;
+
+    --accent: 215 30% 25%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 215 28% 25%;
+    --input: 215 28% 25%;
+    --ring: 215 28% 25%;
+
+    --radius: 0.5rem;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-poppins;
+  }
+}
+
+/* Custom animations */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+/* Navigation styles */
+.nav-link {
+  @apply text-white hover:text-primary transition-colors relative after:content-[''] after:absolute after:w-full after:h-0.5 after:bg-primary after:left-0 after:-bottom-1 after:rounded after:scale-x-0 after:origin-right after:transition-transform hover:after:scale-x-100 hover:after:origin-left;
+  transition-property: color, transform;
+  transition-duration: 0.2s;
+}
+
+.nav-link:active {
+  transform: scale(0.97);
+}
+
+.nav-link-mobile {
+  @apply text-white hover:text-primary transition-colors py-2 px-4 rounded-md hover:bg-white/5;
+  transition: transform 0.1s ease-out, background-color 0.2s, color 0.2s;
+}
+
+.nav-link-mobile:active {
+  transform: scale(0.97);
+}
+
+/* Custom styles */
+.hero-gradient {
+  background: radial-gradient(ellipse at 70% 30%, hsl(260, 80%, 25%) 0%, hsl(215, 30%, 15%) 40%, hsl(215, 30%, 10%) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-gradient::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  box-shadow: inset 0 0 100px 30px hsl(215, 30%, 5%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Hero gradient variations */
+.hero-gradient-casinos {
+  @apply hero-gradient; /* Inherit base styles */
+  background: radial-gradient(ellipse at 70% 30%, hsl(30, 80%, 25%) 0%, hsl(215, 30%, 15%) 40%, hsl(215, 30%, 10%) 100%);
+}
+
+.hero-gradient-events {
+  @apply hero-gradient; /* Inherit base styles */
+  background: radial-gradient(ellipse at 70% 30%, hsl(200, 80%, 25%) 0%, hsl(215, 30%, 15%) 40%, hsl(215, 30%, 10%) 100%);
+}
+
+.hero-gradient-live {
+  @apply hero-gradient; /* Inherit base styles */
+  background: radial-gradient(ellipse at 70% 30%, hsl(260, 85%, 30%) 0%, hsl(215, 30%, 15%) 40%, hsl(215, 30%, 10%) 100%);
+}
+
+/* Subtle background line patterns */
+.hero-lines-casinos {
+  background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.02) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.02) 50%, rgba(255, 255, 255, 0.02) 75%, transparent 75%, transparent);
+  background-size: 30px 30px;
+}
+
+.hero-lines-events {
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.02) 50%, rgba(255, 255, 255, 0.02) 75%, transparent 75%, transparent);
+  background-size: 30px 30px;
+}
+
+.hero-lines-live {
+  background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.015) 50%, transparent 50%);
+  background-size: 20px 20px;
+}
+
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+  animation: blob-move 25s infinite alternate ease-in-out;
+  z-index: 0;
+}
+
+.card-highlight {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.2);
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.card-highlight:hover {
+  transform: scale(1.02) translateY(-4px);
+  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.25);
+  border-color: hsl(var(--primary) / 0.6);
+}
+
+.tournament-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tournament-card:hover {
+  transform: scale(1.02) translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.casino-card-logo {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.app-download-button {
+  /* Updated gradient to brand colors */
+  background: linear-gradient(135deg, hsl(260, 80%, 55%), hsl(215, 80%, 55%)); 
+  transition: all 0.3s ease;
+}
+
+.app-download-button:hover {
+  transform: translateY(-2px);
+  /* Adjust shadow color to match gradient */
+  box-shadow: 0 5px 15px hsla(238, 80%, 60%, 0.4);
+}
+
+.app-download-button:active {
+  transform: scale(0.97) translateY(1px);
+  /* Adjust shadow color */
+  box-shadow: 0 2px 8px hsla(238, 80%, 60%, 0.3);
+  transition-duration: 0.1s; 
+}
+
+/* --- New Secondary CTA Button Style --- */
+.secondary-cta-button {
+  @apply border border-white/20 hover:border-primary/80 hover:text-primary px-6 py-3 rounded-md text-white font-medium inline-flex items-center justify-center transition-all duration-300 active:scale-95;
+}
+
+/* --- New Footer Link Style --- */
+.footer-link {
+  @apply text-muted-foreground hover:text-primary transition-colors flex items-center text-sm;
+}
+
+/* Add glow effect for primary elements */
+.glow-effect {
+  position: relative;
+}
+
+.glow-effect::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(45deg, #e6384c33, #7e00fc33);
+  border-radius: inherit;
+  z-index: -1;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+
+.glow-effect:hover::before {
+  opacity: 1;
+}
+
+/* --- New Blob Animation --- */
+@keyframes blob-move {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+/* --- New Mobile Menu Animation --- */
+@keyframes fade-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.buy-in-chip {
+  background: #16adc8;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.95rem;
+  display: inline-block;
+}
+
+.prize-pool-chip {
+  background: #ab64e6;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.95rem;
+  display: inline-block;
+}
