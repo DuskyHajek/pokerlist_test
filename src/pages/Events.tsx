@@ -50,6 +50,8 @@ const Events = () => {
       .then((data) => {
         if (!isMounted) return; // Exit if component unmounted
 
+        console.log("Raw data received in Events.tsx:", data);
+
         // Check if data is an array before processing
         if (!Array.isArray(data)) {
           console.error("API did not return an array:", data);
@@ -80,6 +82,9 @@ const Events = () => {
             return acc;
           }, {})
         );
+
+        console.log("Grouped data in Events.tsx:", grouped);
+
         setEvents(grouped);
         setIsLoading(false);
       })
@@ -130,7 +135,7 @@ const Events = () => {
                       <div className="md:w-1/3">
                         {festival.club_imgurl ? (
                           <img
-                            src={festival.club_imgurl}
+                            src={festival.club_imgurl.replace(/^http:/, 'https:')}
                             alt={festival.clubname}
                             className="w-full h-48 object-cover rounded-lg"
                           />
@@ -142,7 +147,7 @@ const Events = () => {
                         <div className="flex flex-wrap items-center gap-2 mb-2">
                           {festival.club_logourl && (
                             <img
-                              src={festival.club_logourl}
+                              src={festival.club_logourl.replace(/^http:/, 'https:')}
                               alt={festival.clubname}
                               className="w-6 h-auto rounded-sm bg-muted"
                             />
@@ -164,7 +169,7 @@ const Events = () => {
                           <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                             {festival.club_logourl && (
                               <img
-                                src={festival.club_logourl}
+                                src={festival.club_logourl.replace(/^http:/, 'https:')}
                                 alt={festival.clubname}
                                 className="w-full h-full object-cover"
                               />

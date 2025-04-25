@@ -36,6 +36,8 @@ const FeaturedTournaments = () => {
       .then((data) => {
         if (!isMounted) return; // Exit if component unmounted
 
+        console.log("Raw data received in FeaturedTournaments.tsx:", data);
+
         // Check if data is an array before processing
         if (!Array.isArray(data)) {
           console.error("API did not return an array:", data);
@@ -66,6 +68,9 @@ const FeaturedTournaments = () => {
             return acc;
           }, {})
         );
+
+        console.log("Grouped data in FeaturedTournaments.tsx:", grouped);
+
         setFestivals(grouped);
         setIsLoading(false);
       })
@@ -108,7 +113,7 @@ const FeaturedTournaments = () => {
                   <div className="relative h-48 overflow-hidden">
                     {festival.club_imgurl ? (
                       <img
-                        src={festival.club_imgurl}
+                        src={festival.club_imgurl.replace(/^http:/, 'https:')}
                         alt={festival.clubname}
                         className="w-full h-full object-cover transition-transform hover:scale-105"
                       />
@@ -126,7 +131,7 @@ const FeaturedTournaments = () => {
                       <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                         {festival.club_logourl && (
                           <img
-                            src={festival.club_logourl}
+                            src={festival.club_logourl.replace(/^http:/, 'https:')}
                             alt={festival.clubname}
                             className="w-full h-full object-cover bg-muted"
                           />
