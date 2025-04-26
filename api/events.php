@@ -3,7 +3,11 @@ header('Content-Type: application/json');
 
 // External data source
 $url = 'https://www.pokerlist.com/pl/tournaments_export.php?cid=pokerlist-web&sci=yes';
-$cacheFile = '/tmp/events_cache.json'; // Use /tmp for Vercel serverless environment
+
+// Determine cache file path based on environment
+$isVercel = getenv('VERCEL') !== false && getenv('VERCEL') !== '';
+$cacheFile = $isVercel ? '/tmp/events_cache.json' : __DIR__ . '/events_cache.json';
+
 $cacheTime = 300; // 5 minutes in seconds
 
 // Check if cache exists and is fresh
