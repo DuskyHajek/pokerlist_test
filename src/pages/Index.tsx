@@ -19,7 +19,7 @@ const Index = () => {
       <main className="flex-grow">
         <HeroSection />
         <FeaturedTournaments />
-        <LiveCashGames tournaments={[]} />
+        <LiveCashGames />
         <CountrySelector />
         <DownloadApp />
       </main>

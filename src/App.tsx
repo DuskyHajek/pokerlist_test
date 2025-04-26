@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Casinos from "./pages/Casinos";
 import Events from "./pages/Events";
-import CashGames from "./pages/CashGames";
+import CashGamesPage from "./pages/CashGamesPage";
 import CasinoDetail from "./pages/CasinoDetail";
 import CasinosByCountry from "./pages/CasinosByCountry";
 import FestivalDetail from "./pages/FestivalDetail";
@@ -26,7 +26,7 @@ const App = () => (
           <Route path="/casinos/:countryCode" element={<CasinosByCountry />} />
           <Route path="/casino/:id" element={<CasinoDetail />} />
           <Route path="/events" element={<Events />} />
-          <Route path="/cash-games" element={<CashGames />} />
+          <Route path="/cash-games" element={<CashGamesPage />} />
           <Route path="/festival/:clubid" element={<FestivalDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
