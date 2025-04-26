@@ -206,33 +206,44 @@ const FestivalDetail = () => {
         <h2 className="text-2xl font-semibold mb-6">Tournament Schedule</h2>
         <div className="space-y-4">
           {festival.tournaments.length > 0 ? (
-            festival.tournaments.map((tournament) => (
+            festival.tournaments.map((tournament) => {
+              // Create Date object once
+              const startDateObj = new Date(tournament.startdate);
+              
+              return (
               <div key={tournament.tid} className="card-highlight p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-4 border border-white/10">
                 {/* Left side: Date and Title */}
                 <div className="flex-grow">
-                   {/* Date */}
+                   {/* Date and Time - Formatted from single startdate field */}
                    <p className="text-sm text-muted-foreground mb-1.5 flex items-center">
                      <CalendarDays className="w-4 h-4 mr-1.5" />
-                     {format(new Date(tournament.startdate), 'eee, MMM d, yyyy')} @ {tournament.starttime}
+                     {format(startDateObj, 'eee, MMM d, yyyy')} @ {format(startDateObj, 'HH:mm')}
                   </p>
                   {/* Title */}
                   <h3 className="text-lg font-semibold">{tournament.title}</h3>
                 </div>
                 {/* Right side: Buy-in and Guarantee */}
-                <div className="flex-shrink-0 flex flex-col sm:items-end sm:text-right space-y-1 pt-1">
-                   {/* Buy-in */}
-                   <span className="text-base font-semibold flex items-center">
-                    {tournament.buyin} <Euro className="w-4 h-4 ml-1" />
-                  </span>
-                  {/* Guarantee - Display only if available */}
+                <div className="flex-shrink-0 flex flex-row items-center sm:items-start space-x-2 pt-1">
+                   {/* Buy-in Pill */}
+                   <span
+                    className="text-xs font-semibold text-white px-3 py-1 rounded-full flex items-center"
+                    style={{ backgroundColor: '#16adc8' }} // Cyan background
+                   >
+                    Buy-in: {tournament.buyin} <Euro className="w-3 h-3 ml-1" />
+                   </span>
+                  {/* Guarantee Pill - Display only if available */}
                   {tournament.guaranteed && (
-                    <span className="text-xs font-medium px-2 py-0.5 bg-primary/10 text-primary rounded">
-                      {tournament.guaranteed} € GTD
-                     </span>
+                    <span
+                      className="text-xs font-semibold text-white px-3 py-1 rounded-full flex items-center"
+                      style={{ backgroundColor: '#ab64e6' }} // Purple background
+                    >
+                      {tournament.guaranteed} <Euro className="w-3 h-3 ml-0.5 mr-0.5" /> GTD
+                    </span>
                   )}
                 </div>
               </div>
-            ))
+            );
+          })
           ) : (
             <p className="text-muted-foreground">No specific tournaments listed for this festival.</p>
           )}
