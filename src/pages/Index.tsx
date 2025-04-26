@@ -10,7 +10,7 @@ import CountrySelector from "../components/CountrySelector";
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col overflow-x-hidden">
       <Helmet>
         <title>PokerList - Find Poker Tournaments & Cash Games Near You</title>
         <meta name="description" content="Your ultimate guide to live poker tournaments, cash games, and poker rooms. Discover events and download the PokerList app." />
