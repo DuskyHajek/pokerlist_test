@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import { Helmet } from 'react-helmet-async';
 import { Skeleton } from '@/components/ui/skeleton'; // For loading state
 import { format } from 'date-fns'; // For formatting dates
+import { CalendarDays, Euro } from 'lucide-react'; // Import icons
 
 // Define an interface for the Festival object (including tournaments)
 interface Tournament {
@@ -13,7 +14,9 @@ interface Tournament {
   startdate: string;
   starttime: string;
   buyin: string; // Assuming buyin is a string like '$100+10'
+  guaranteed?: string | number; // Added optional guarantee field
   // Add other tournament fields if needed
+  // Example: guarantee?: string; // Add if guarantee data becomes available
 }
 
 interface Festival {
@@ -95,6 +98,7 @@ const FestivalDetail = () => {
                 startdate: item.startdate,
                 starttime: item.starttime,
                 buyin: item.buyin,
+                guaranteed: item.guaranteed, // Pass guarantee from API item
                 // Add other relevant fields from 'item'
               });
             } else {
@@ -177,16 +181,20 @@ const FestivalDetail = () => {
       </Helmet>
       <Navbar />
       <main className="flex-grow container mx-auto px-4 py-12 pt-24">
-        {/* Festival Header */}
-        <div className="flex flex-col md:flex-row gap-6 md:gap-8 mb-8 items-start">
-          {festival.club_logourl && (
-            <img 
-              src={festival.club_logourl.replace(/^http:/, 'https:')}
-              alt={`${festival.clubname} logo`}
-              className="w-20 h-20 md:w-24 md:h-24 object-contain bg-muted p-2 rounded-lg flex-shrink-0"
-            />
+        {/* --- Festival Header --- */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 items-start">
+          {/* Image on the left */}
+          {festival.club_imgurl && (
+             <img
+                src={festival.club_imgurl.replace(/^http:/, 'https:')}
+                alt={`${festival.clubname}`}
+                className="w-full h-auto object-cover rounded-lg md:col-span-1" // Adjust grid span
+              />
           )}
-          <div className="flex-grow">
+
+          {/* Details on the right */}
+          <div className={`flex flex-col ${festival.club_imgurl ? 'md:col-span-2' : 'md:col-span-3'}`}> {/* Adjust grid span based on image presence */}
+            {/* Removed small logo img tag here */}
             <h1 className="text-3xl md:text-4xl font-bold mb-2">{festival.clubname}</h1>
             <p className="text-lg text-muted-foreground mb-1">{festival.club_description}</p>
             <p className="text-md text-muted-foreground mb-3">{festival.club_city}</p>
@@ -194,31 +202,34 @@ const FestivalDetail = () => {
           </div>
         </div>
 
-        {/* Festival Image (Optional, can be prominent or background) */}
-        {festival.club_imgurl && (
-           <img 
-              src={festival.club_imgurl.replace(/^http:/, 'https:')}
-              alt={`${festival.clubname}`}
-              className="w-full h-48 md:h-64 object-cover rounded-lg mb-8"
-            />
-        )}
-
-        {/* Tournament List */}
-        <h2 className="text-2xl font-semibold mb-4">Tournament Schedule</h2>
+        {/* --- Tournament List --- */}
+        <h2 className="text-2xl font-semibold mb-6">Tournament Schedule</h2>
         <div className="space-y-4">
           {festival.tournaments.length > 0 ? (
             festival.tournaments.map((tournament) => (
-              <div key={tournament.tid} className="card-highlight p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-white/10">
+              <div key={tournament.tid} className="card-highlight p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-4 border border-white/10">
+                {/* Left side: Date and Title */}
                 <div className="flex-grow">
-                  <h3 className="text-lg font-semibold mb-1">{tournament.title}</h3>
-                   {/* Format date if needed */}
-                  <p className="text-sm text-muted-foreground">
-                    {format(new Date(tournament.startdate), 'eee, MMM d, yyyy')} @ {tournament.starttime}
+                   {/* Date */}
+                   <p className="text-sm text-muted-foreground mb-1.5 flex items-center">
+                     <CalendarDays className="w-4 h-4 mr-1.5" />
+                     {format(new Date(tournament.startdate), 'eee, MMM d, yyyy')} @ {tournament.starttime}
                   </p>
+                  {/* Title */}
+                  <h3 className="text-lg font-semibold">{tournament.title}</h3>
                 </div>
-                <div className="flex-shrink-0">
-                  <span className="buy-in-chip text-sm">{tournament.buyin}</span>
-                  {/* Add guarantee or other details if available */}
+                {/* Right side: Buy-in and Guarantee */}
+                <div className="flex-shrink-0 flex flex-col sm:items-end sm:text-right space-y-1 pt-1">
+                   {/* Buy-in */}
+                   <span className="text-base font-semibold flex items-center">
+                    {tournament.buyin} <Euro className="w-4 h-4 ml-1" />
+                  </span>
+                  {/* Guarantee - Display only if available */}
+                  {tournament.guaranteed && (
+                    <span className="text-xs font-medium px-2 py-0.5 bg-primary/10 text-primary rounded">
+                      {tournament.guaranteed} € GTD
+                     </span>
+                  )}
                 </div>
               </div>
             ))
