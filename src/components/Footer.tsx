@@ -39,10 +39,10 @@ const Footer = () => {
           <div>
             <h3 className="text-base font-semibold mb-3 uppercase tracking-wider">Navigation</h3>
             <ul className="space-y-2">
-              <li><Link to="/" className="footer-link"><Home size={16} className="mr-2"/>Home</Link></li>
-              <li><Link to="/casinos" className="footer-link"><Landmark size={16} className="mr-2"/>Casinos</Link></li>
-              <li><Link to="/events" className="footer-link"><CalendarDays size={16} className="mr-2"/>Events</Link></li>
-              <li><Link to="/cash-games" className="footer-link"><Layers3 size={16} className="mr-2"/>Live Cash Games</Link></li>
+              <li><Link to="/" className="footer-link"><img src="/icons/home.png" alt="Home" className="w-4 h-4 mr-2 filter brightness-0 invert"/>Home</Link></li>
+              <li><Link to="/casinos" className="footer-link"><img src="/icons/casinos.png" alt="Casinos" className="w-4 h-4 mr-2 filter brightness-0 invert"/>Casinos</Link></li>
+              <li><Link to="/events" className="footer-link"><img src="/icons/events.png" alt="Events" className="w-4 h-4 mr-2 filter brightness-0 invert"/>Events</Link></li>
+              <li><Link to="/cash-games" className="footer-link"><img src="/icons/cashgames.png" alt="Cash Games" className="w-4 h-4 mr-2 filter brightness-0 invert"/>Live Cash Games</Link></li>
             </ul>
           </div>
           

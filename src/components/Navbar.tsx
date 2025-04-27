@@ -22,16 +22,20 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="nav-link">
+            <Link to="/" className="nav-link flex items-center gap-1.5">
+              <img src="/icons/home.png" alt="" className="w-6 h-6 opacity-80 group-hover:opacity-100 transition-opacity"/>
               Home
             </Link>
-            <Link to="/casinos" className="nav-link">
+            <Link to="/casinos" className="nav-link flex items-center gap-1.5">
+              <img src="/icons/casinos.png" alt="" className="w-6 h-6 opacity-80 group-hover:opacity-100 transition-opacity"/>
               Casinos
             </Link>
-            <Link to="/events" className="nav-link">
+            <Link to="/events" className="nav-link flex items-center gap-1.5">
+              <img src="/icons/events.png" alt="" className="w-6 h-6 opacity-80 group-hover:opacity-100 transition-opacity"/>
               Events
             </Link>
-            <Link to="/cash-games" className="nav-link">
+            <Link to="/cash-games" className="nav-link flex items-center gap-1.5">
+              <img src="/icons/cashgames.png" alt="" className="w-6 h-6 opacity-80 group-hover:opacity-100 transition-opacity"/>
               Live Cash Games
             </Link>
             <Link to="/#download" className="app-download-button px-4 py-2 rounded-md text-white font-medium hover:scale-105 transition-transform">
@@ -58,30 +62,34 @@ const Navbar = () => {
             <div className="flex flex-col space-y-2 items-start px-4">
               <Link 
                 to="/" 
-                className="nav-link-mobile w-full text-lg"
+                className="nav-link-mobile w-full text-lg flex items-center gap-2"
                 onClick={() => setIsMenuOpen(false)}
               >
+                <img src="/icons/home.png" alt="" className="w-8 h-8"/>
                 Home
               </Link>
               <Link 
                 to="/casinos" 
-                className="nav-link-mobile w-full text-lg"
+                className="nav-link-mobile w-full text-lg flex items-center gap-2"
                 onClick={() => setIsMenuOpen(false)}
               >
+                <img src="/icons/casinos.png" alt="" className="w-8 h-8"/>
                 Casinos
               </Link>
               <Link 
                 to="/events" 
-                className="nav-link-mobile w-full text-lg"
+                className="nav-link-mobile w-full text-lg flex items-center gap-2"
                 onClick={() => setIsMenuOpen(false)}
               >
+                <img src="/icons/events.png" alt="" className="w-8 h-8"/>
                 Events
               </Link>
               <Link 
                 to="/cash-games" 
-                className="nav-link-mobile w-full text-lg"
+                className="nav-link-mobile w-full text-lg flex items-center gap-2"
                 onClick={() => setIsMenuOpen(false)}
               >
+                <img src="/icons/cashgames.png" alt="" className="w-8 h-8"/>
                 Live Cash Games
               </Link>
               <div className="pt-2 w-full">
