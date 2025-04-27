@@ -1,17 +1,20 @@
 import React from "react";
 import { countries } from "../data/mockData";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { ChevronRight } from "lucide-react";
 
 const CountrySelector = () => {
   return (
-    <section className="py-16 md:py-24 bg-background">
+    <section className="py-16 md:py-24 bg-gradient-to-b from-background to-pokerDarkBlue/50">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center">Find Poker Rooms by Country</h2>
+        <h2 className="text-3xl font-bold mb-12 text-center">Find Poker Rooms by Country</h2>
         <p className="text-muted-foreground text-center max-w-2xl mx-auto mb-10">
           Explore poker rooms and casinos in different countries. Click on a country to see all venues.
         </p>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 max-w-4xl mx-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
           {countries.map((country) => (
             <Link
               key={country.code}
@@ -33,12 +36,17 @@ const CountrySelector = () => {
         <div className="mt-12 text-center">
           <Link 
             to="/casinos" 
-            className="secondary-cta-button"
           >
-            View All Casinos
-            <svg xmlns="http://www.w3.org/2000/svg" className="ml-2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m9 18 6-6-6-6"/>
-            </svg>
+            <Button 
+              variant="outline" 
+              className={cn(
+                "border-white/20 text-white hover:border-primary/80 hover:text-primary active:scale-95 transition-all duration-300",
+                "px-6 py-3"
+              )}
+            >
+              View All Casinos
+              <ChevronRight size={20} className="ml-2" />
+            </Button>
           </Link>
         </div>
       </div>

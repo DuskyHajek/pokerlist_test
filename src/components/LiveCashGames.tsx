@@ -4,6 +4,9 @@ import React, { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 // Update CashGame interface to match API response
 interface CashGame {
@@ -23,7 +26,7 @@ interface CashGame {
 
 // --- Skeleton Component for Live Cash Game Row ---
 const LiveCashGameRowSkeleton = () => (
-  <div className="card-highlight p-4 flex flex-col md:flex-row md:items-center gap-4">
+  <Card className="card-highlight p-4 flex flex-col md:flex-row md:items-center gap-4 animate-pulse">
     <Skeleton className="w-10 h-10 rounded-full flex-shrink-0" />
     <div className="flex-grow space-y-2">
       <Skeleton className="h-4 w-24" />
@@ -39,6 +42,20 @@ const LiveCashGameRowSkeleton = () => (
       <Skeleton className="h-4 w-12 ml-auto" />
     </div>
     <Skeleton className="hidden md:block ml-2 h-6 w-6" />
+  </Card>
+);
+
+const LoadingSkeleton = () => (
+  <div className="bg-card p-4 rounded-lg border border-border/50 space-y-3">
+    <div className="flex justify-between items-center">
+      <Skeleton className="h-5 w-2/5" />
+      <Skeleton className="h-4 w-1/4" />
+    </div>
+    <Skeleton className="h-4 w-3/4" />
+    <div className="flex space-x-2 pt-1">
+      <Skeleton className="h-6 w-16 rounded-full bg-pokerBlue" /> 
+      <Skeleton className="h-6 w-20 rounded-full bg-pokerPurple" />
+    </div>
   </div>
 );
 
@@ -118,9 +135,9 @@ const LiveCashGames = () => {
               const stakes = `${currencySymbol}${game.smallblind}/${currencySymbol}${game.bigblind}`;
               
               return (
-                <div
+                <Card
                   key={game.id} // Use game.id
-                  className="card-highlight p-3 sm:p-4 flex flex-col md:flex-row md:items-center gap-3 md:gap-4 max-w-full w-full mx-auto"
+                  className="card-highlight p-4 flex flex-col md:flex-row md:items-center gap-3 md:gap-4 max-w-full w-full mx-auto"
                 >
                    {/* Placeholder for Logo - maybe use clubid to map later? */}
                    <div className="w-10 h-10 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-xs text-muted-foreground">
@@ -139,20 +156,18 @@ const LiveCashGames = () => {
                   <div className="flex-grow">
                     {/* Use clubname and maybe link to club page? */}
                     <div className="text-sm text-primary mb-1">{game.clubname}</div> 
-                    {/* Use gametype */}
+                    {/* Use gametype - Standardized h3 */}
                     <h3 className="text-xl font-semibold mb-2">{game.gametype}</h3> 
                     {/* Use description or maybe players? */}
                     {/* <div className="text-sm text-muted-foreground">Players: {game.players}</div> */}
                   </div>
   
                   {/* Display Stakes and Player Count Chips */}
-                  <div className="flex flex-wrap gap-2 mt-3 md:mt-0"> {/* Use flex-wrap for smaller screens */} 
+                  <div className="flex items-center space-x-2 pt-2">
                     {/* Apply buy-in-chip class to stakes */}
-                    <span className="buy-in-chip">{stakes}</span> 
+                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-pokerBlue text-white">{stakes}</span>
                     {/* Apply prize-pool-chip class to players */}
-                    <span className="prize-pool-chip">Players: {game.players}</span>
-                    {/* Maybe display minbuyin if available? */}
-                    {/* {game.minbuyin && <span className="info-chip">Min: {currencySymbol}{game.minbuyin}</span>} */}
+                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-pokerPurple text-white">Players: {game.players}</span>
                   </div>
   
                   {/* Display last updated time? */}
@@ -162,7 +177,7 @@ const LiveCashGames = () => {
                   </div> 
                   
                   <ChevronRight className="hidden md:block ml-2 text-muted-foreground" />
-                </div>
+                </Card>
               );
             })
           )}
@@ -171,9 +186,16 @@ const LiveCashGames = () => {
         <div className="mt-10 flex justify-center md:hidden">
           <Link 
             to="/cash-games" 
-            className="secondary-cta-button"
           >
-            View All Cash Games <ChevronRight size={16} className="ml-1" />
+            <Button 
+              variant="outline" 
+              className={cn(
+                "border-white/20 text-white hover:border-primary/80 hover:text-primary active:scale-95 transition-all duration-300",
+                "px-6 py-3"
+              )}
+            >
+              View All Cash Games <ChevronRight size={16} className="ml-1" />
+            </Button>
           </Link>
         </div>
       </div>

@@ -6,12 +6,14 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { casinos, countries } from "../data/mockData";
 import { MapPin } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 // --- Skeleton Component for Casino Card ---
 const CasinoCardSkeleton = () => (
-  <div className="card-highlight overflow-hidden rounded-lg border border-white/10">
+  <Card className="card-highlight overflow-hidden animate-pulse">
     <Skeleton className="h-48 w-full" />
-    <div className="p-5 space-y-3">
+    <div className="p-6 space-y-3">
       <Skeleton className="h-6 w-3/4" />
       <div className="flex items-center">
         <Skeleton className="h-4 w-4 mr-1" />
@@ -23,7 +25,7 @@ const CasinoCardSkeleton = () => (
         <Skeleton className="h-5 w-24" />
       </div>
     </div>
-  </div>
+  </Card>
 );
 
 const CasinosByCountry = () => {
@@ -91,7 +93,7 @@ const CasinosByCountry = () => {
         <Navbar />
         <main className="flex-grow pt-16 flex items-center justify-center">
           <div className="text-center p-8">
-            <h2 className="text-2xl font-bold mb-4">Country Not Found</h2>
+            <h2 className="text-3xl font-bold mb-4">Country Not Found</h2>
             <p className="mb-6">The country you're looking for doesn't exist or has been removed.</p>
             <Link to="/casinos" className="text-primary underline">Back to all casinos</Link>
           </div>
@@ -113,20 +115,13 @@ const CasinosByCountry = () => {
       </Helmet>
       <Navbar />
       <main className="flex-grow pt-16">
-        <div className="hero-gradient py-16">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <img 
-                src={country.flag} 
-                alt={`${country.name} Flag`}
-                className="w-16 h-12 object-cover rounded shadow bg-muted"
-              />
-              <h1 className="text-4xl md:text-5xl font-bold">
-                Poker in {country.name}
-              </h1>
-            </div>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto text-center">
-              Find the best poker rooms and casinos in {country.name}
+        <div className="hero-gradient-casinos hero-lines-casinos py-16 md:py-24">
+          <div className="container mx-auto px-4 text-center">
+            <h1 className="text-4xl md:text-5xl font-bold">
+              Poker Rooms in {country?.name || '...'}
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-center">
+              Explore casinos and poker rooms in {country?.name || 'this country'}.
             </p>
           </div>
         </div>
@@ -134,7 +129,7 @@ const CasinosByCountry = () => {
         <section className="py-12 bg-background">
           <div className="container mx-auto px-4">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">
+              <h2 className="text-3xl font-bold">
                 {!isLoading && `${filteredCasinos.length} Poker ${filteredCasinos.length === 1 ? 'Room' : 'Rooms'} in ${country.name}`}
                 {isLoading && <Skeleton className="h-8 w-48 inline-block" />}
               </h2>
@@ -155,7 +150,11 @@ const CasinosByCountry = () => {
                   <Link
                     key={casino.id}
                     to={`/casino/${casino.id}`}
-                    className="card-highlight overflow-hidden rounded-lg hover:border-primary/50 transition-all duration-300 group"
+                    className={cn(
+                      "block rounded-lg border bg-card text-card-foreground shadow-sm",
+                      "card-highlight overflow-hidden hover:border-primary/50 transition-all duration-300 group",
+                      "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    )}
                   >
                     <div className="h-48 bg-gray-800 relative">
                       {/* Placeholder for casino image */}
@@ -171,23 +170,14 @@ const CasinosByCountry = () => {
                       </div>
                     </div>
                     
-                    <div className="p-5">
+                    <div className="p-6 flex flex-col flex-grow">
                       <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
                         {casino.name}
                       </h3>
-                      
-                      <div className="flex items-center text-muted-foreground mb-4">
-                        <MapPin size={16} className="mr-1" />
-                        <span className="text-sm">{casino.city}</span>
-                      </div>
-                      
-                      {casino.description && (
-                        <p className="text-sm text-gray-400 line-clamp-2">
-                          {casino.description}
-                        </p>
-                      )}
-                      
-                      <div className="mt-4 flex justify-end">
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {casino.description || 'No description available.'}
+                      </p>
+                      <div className="mt-auto pt-3 flex justify-between items-center">
                         <span className="text-primary font-medium text-sm flex items-center">
                           View details
                           <svg xmlns="http://www.w3.org/2000/svg" className="ml-1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -2,10 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 // --- Skeleton Component for Tournament Card ---
 const TournamentCardSkeleton = () => (
-  <div className="tournament-card overflow-hidden h-[380px] flex flex-col relative">
+  <Card className="tournament-card overflow-hidden h-[380px] flex flex-col relative animate-pulse">
     <Skeleton className="h-48 w-full" />
     <div className="p-5 flex flex-col flex-grow space-y-3">
       <Skeleton className="h-6 w-3/4" />
@@ -14,6 +17,20 @@ const TournamentCardSkeleton = () => (
       <Skeleton className="h-10 w-10 rounded-full" />
       <Skeleton className="h-4 w-28" />
       <Skeleton className="h-3 w-20" />
+    </div>
+  </Card>
+);
+
+const LoadingSkeleton = () => (
+  <div className="tournament-card animate-pulse">
+    <div className="p-4 space-y-3">
+      <Skeleton className="h-5 w-3/5" />
+      <Skeleton className="h-4 w-4/5" />
+      <Skeleton className="h-4 w-2/5" />
+      <div className="flex space-x-2 pt-1">
+        {/* Match chip style but as Skeleton */}
+        <Skeleton className="h-5 w-20 rounded-full bg-pokerBlue" /> 
+      </div>
     </div>
   </div>
 );
@@ -105,47 +122,61 @@ const FeaturedTournaments = () => {
                 <Link 
                   to={`/festival/${festival.clubid}`} 
                   key={festival.clubid} 
-                  className="block tournament-card overflow-hidden h-[380px] flex flex-col relative max-w-full w-full mx-auto group"
+                  className="block max-w-full w-full mx-auto group h-[380px] relative rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
-                  <div className="relative h-48 overflow-hidden">
-                    {festival.club_imgurl ? (
-                      <img
-                        src={festival.club_imgurl.replace(/^http:/, 'https:')}
-                        alt={festival.clubname}
-                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-muted"></div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                  </div>
-                  <div className="p-5 flex flex-col flex-grow">
-                    <h3 className="text-xl font-semibold mb-2 line-clamp-2">{festival.clubname}</h3>
-                    <div className="mb-4">
-                      <span className="buy-in-chip">{festival.club_event_duration}</span>
+                  <Card className="tournament-card overflow-hidden h-full flex flex-col">
+                    <div className="relative h-48 overflow-hidden">
+                      {festival.club_imgurl ? (
+                        <img
+                          src={festival.club_imgurl.replace(/^http:/, 'https:')}
+                          alt={festival.clubname}
+                          className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-muted"></div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
                     </div>
-                    <div className="mt-auto flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                        {festival.club_logourl && (
-                          <img
-                            src={festival.club_logourl.replace(/^http:/, 'https:')}
-                            alt={festival.clubname}
-                            className="w-full h-full object-cover bg-muted"
-                          />
-                        )}
+                    <div className="p-5 flex flex-col flex-grow">
+                      <h3 className="text-xl font-semibold mb-2 line-clamp-2">{festival.clubname}</h3>
+                      <div className="mb-4">
+                        <span className="inline-block mt-2 px-3 py-1 text-xs font-semibold rounded-full bg-pokerBlue text-white">
+                          {festival.club_event_duration}
+                        </span>
                       </div>
-                      <div>
-                        <p className="font-medium">{festival.club_description}</p>
-                        <p className="text-sm text-muted-foreground">{festival.club_city}</p>
+                      <div className="mt-auto flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                          {festival.club_logourl && (
+                            <img
+                              src={festival.club_logourl.replace(/^http:/, 'https:')}
+                              alt={festival.clubname}
+                              className="w-full h-full object-cover bg-muted"
+                            />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium">{festival.club_description}</p>
+                          <p className="text-sm text-muted-foreground">{festival.club_city}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </Card>
                 </Link>
               ))}
         </div>
         <div className="mt-10 flex justify-center md:hidden">
-          <Link to="/events" className="secondary-cta-button">
-            View All Events <ChevronRight size={16} className="ml-1" />
+          <Link 
+            to="/events"
+          >
+            <Button 
+              variant="outline" 
+              className={cn(
+                "border-white/20 text-white hover:border-primary/80 hover:text-primary active:scale-95 transition-all duration-300",
+                "px-6 py-3"
+              )}
+            >
+              View All Events <ChevronRight size={16} className="ml-1" />
+            </Button>
           </Link>
         </div>
       </div>

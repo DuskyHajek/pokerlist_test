@@ -1,6 +1,9 @@
+import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect } from "react";
-import { Frown } from "lucide-react";
+import { Frown, Home } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const NotFound = () => {
   const location = useLocation();
@@ -22,11 +25,22 @@ const NotFound = () => {
         </h1>
         <p className="text-xl md:text-2xl text-foreground mb-4">Oops! Page Not Found</p>
         <p className="text-muted-foreground mb-8">
-          Sorry, the page you are looking for doesn't exist or has been moved.
+          Sorry, we couldn't find the page you were looking for.
         </p>
         
-        <Link to="/" className="secondary-cta-button inline-flex items-center">
-          Return to Home
+        <Link 
+          to="/" 
+        >
+          <Button 
+            variant="outline" 
+            className={cn(
+              "border-white/20 text-white hover:border-primary/80 hover:text-primary active:scale-95 transition-all duration-300",
+              "px-6 py-3"
+            )}
+          >
+            <Home size={16} className="mr-2" />
+            Go back home
+          </Button>
         </Link>
       </div>
     </div>

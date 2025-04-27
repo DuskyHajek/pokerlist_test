@@ -5,10 +5,12 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 // --- Skeleton Component for Event Card ---
 const EventCardSkeleton = () => (
-  <div className="card-highlight p-6 flex flex-col md:flex-row gap-6 border border-white/10">
+  <Card className="card-highlight p-6 flex flex-col md:flex-row gap-6 animate-pulse">
     <Skeleton className="md:w-1/3 h-48 md:h-auto rounded-lg" />
     <div className="md:w-2/3 flex flex-col space-y-3">
       <div className="flex items-center gap-2">
@@ -30,7 +32,7 @@ const EventCardSkeleton = () => (
         </div>
       </div>
     </div>
-  </div>
+  </Card>
 );
 
 const Events = () => {
@@ -108,12 +110,12 @@ const Events = () => {
       <Navbar />
       <main className="flex-grow pt-16">
         <div className="hero-gradient-events hero-lines-events py-16 md:py-24">
-          <div className="container mx-auto px-4">
+          <div className="container mx-auto px-4 text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 text-center animate-fade-in">
-              Poker Events
+              Poker Events & Festivals
             </h1>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto text-center mb-8 animate-fade-in">
-              Find major poker tournaments and festival series worldwide
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-center mb-8 animate-fade-in">
+              Discover upcoming poker tournament series and festivals near you.
             </p>
           </div>
         </div>
@@ -128,7 +130,11 @@ const Events = () => {
                     <Link
                       to={`/festival/${festival.clubid}`}
                       key={festival.clubid}
-                      className="block card-highlight p-6 flex flex-col md:flex-row gap-6 border border-white/10 hover:border-primary/50 transition-all group"
+                      className={cn(
+                        "block rounded-lg border bg-card text-card-foreground shadow-sm",
+                        "card-highlight p-6 flex flex-col md:flex-row gap-6 hover:border-primary/50 transition-all group",
+                        "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      )}
                     >
                       <div className="md:w-1/3">
                         {festival.club_imgurl ? (

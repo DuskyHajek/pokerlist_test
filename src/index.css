@@ -87,6 +87,7 @@
 /* Navigation styles */
 .nav-link {
   @apply text-white hover:text-primary transition-colors relative after:content-[''] after:absolute after:w-full after:h-0.5 after:bg-primary after:left-0 after:-bottom-1 after:rounded after:scale-x-0 after:origin-right after:transition-transform hover:after:scale-x-100 hover:after:origin-left;
+  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded;
   transition-property: color, transform;
   transition-duration: 0.2s;
 }
@@ -97,6 +98,7 @@
 
 .nav-link-mobile {
   @apply text-white hover:text-primary transition-colors py-2 px-4 rounded-md hover:bg-white/5;
+  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   transition: transform 0.1s ease-out, background-color 0.2s, color 0.2s;
 }
 
@@ -161,6 +163,7 @@
   z-index: 0;
 }
 
+/*
 .card-highlight {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
   box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.2);
@@ -174,7 +177,9 @@
   box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.25);
   border-color: hsl(var(--primary) / 0.6);
 }
+*/
 
+/*
 .tournament-card {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
   border-radius: 0.75rem;
@@ -188,6 +193,7 @@
   transform: scale(1.02) translateY(-4px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }
+*/
 
 .casino-card-logo {
   position: absolute;
@@ -219,14 +225,17 @@
   transition-duration: 0.1s; 
 }
 
-/* --- New Secondary CTA Button Style --- */
+/* --- Removed Secondary CTA Button Style --- */
+/*
 .secondary-cta-button {
   @apply border border-white/20 hover:border-primary/80 hover:text-primary px-6 py-3 rounded-md text-white font-medium inline-flex items-center justify-center transition-all duration-300 active:scale-95;
 }
+*/
 
 /* --- New Footer Link Style --- */
 .footer-link {
   @apply text-muted-foreground hover:text-primary transition-colors flex items-center text-sm;
+  @apply focus:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-pokerDarkBlue rounded;
 }
 
 /* Add glow effect for primary elements */
@@ -267,24 +276,4 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.buy-in-chip {
-  background: #16adc8;
-  color: #fff;
-  font-weight: 600;
-  border-radius: 9999px;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.95rem;
-  display: inline-block;
-}
-
-.prize-pool-chip {
-  background: #ab64e6;
-  color: #fff;
-  font-weight: 600;
-  border-radius: 9999px;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.95rem;
-  display: inline-block;
 }

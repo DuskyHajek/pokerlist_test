@@ -4,7 +4,9 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { casinos, tournaments, liveTournaments } from "../data/mockData";
-import { MapPin, Phone, Mail, Globe } from "lucide-react";
+import { MapPin, Phone, Mail, Globe, Download } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Card } from "@/components/ui/card";
 
 const CasinoDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,9 +21,9 @@ const CasinoDetail = () => {
         <Navbar />
         <main className="flex-grow pt-16 flex items-center justify-center">
           <div className="text-center p-8">
-            <h2 className="text-2xl font-bold mb-4">Casino Not Found</h2>
+            <h2 className="text-3xl font-bold mb-4">Casino Not Found</h2>
             <p className="mb-6">The casino you're looking for doesn't exist or has been removed.</p>
-            <a href="/casinos" className="text-primary underline">Back to all casinos</a>
+            <Link to="/casinos" className="text-primary underline">Back to all casinos</Link>
           </div>
         </main>
         <Footer />
@@ -86,118 +88,107 @@ const CasinoDetail = () => {
         </div>
 
         <section className="py-12 bg-background">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-1">
-                <div className="card-highlight p-6 mb-8">
-                  <h3 className="text-xl font-semibold mb-2">Casino Information</h3>
-                  
-                  {casino.description && (
-                    <div className="mb-6">
-                      <p className="text-muted-foreground">{casino.description}</p>
-                    </div>
-                  )}
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <div className="text-sm text-muted-foreground mb-1">Address</div>
-                      <div className="font-medium">{casino.address}</div>
-                      <div>{casino.city}, {casino.country}</div>
-                    </div>
-                    
-                    {casino.phoneNumber && (
-                      <div>
-                        <div className="text-sm text-muted-foreground mb-1">Phone</div>
-                        <div className="font-medium">{casino.phoneNumber}</div>
-                      </div>
-                    )}
-                    
-                    {casino.email && (
-                      <div>
-                        <div className="text-sm text-muted-foreground mb-1">Email</div>
-                        <div className="font-medium">{casino.email}</div>
-                      </div>
-                    )}
-                    
-                    <div>
-                      <div className="text-sm text-muted-foreground mb-1">Website</div>
-                      <a href="#" className="text-primary hover:underline flex items-center gap-1">
-                        <Globe size={16} />
-                        <span>Visit website</span>
-                      </a>
-                    </div>
-                  </div>
+          <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="md:col-span-2">
+              <h3 className="text-xl font-semibold mb-4 border-b border-border pb-2">Casino Information</h3>
+              <div className="space-y-4">
+                <div>
+                  <div className="text-sm text-muted-foreground mb-1">Address</div>
+                  <div className="font-medium">{casino.address}</div>
+                  <div>{casino.city}, {casino.country}</div>
                 </div>
                 
-                {casino.latitude && casino.longitude && (
-                  <div className="card-highlight p-6">
-                    <h3 className="text-xl font-semibold mb-2">Location</h3>
-                    <div className="bg-gray-800 h-64 rounded-lg flex items-center justify-center">
-                      <div className="text-center p-4">
-                        <p>Map would be displayed here</p>
-                        <p className="text-sm text-muted-foreground mt-2">
-                          Lat: {casino.latitude}, Lng: {casino.longitude}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <div className="lg:col-span-2">
-                <h2 className="text-2xl font-bold mb-6">Upcoming Tournaments</h2>
-                
-                {casinoTournaments.length > 0 ? (
-                  <div className="space-y-4">
-                    {casinoTournaments.map(tournament => (
-                      <div
-                        key={tournament.id}
-                        className="card-highlight p-5 border border-white/10"
-                      >
-                        <h3 className="text-xl font-semibold mb-2">{tournament.title}</h3>
-                        
-                        <div className="text-sm text-muted-foreground mb-4">
-                          {new Date(tournament.date).toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                          })}
-                        </div>
-                        
-                        <div className="flex flex-wrap gap-3 mb-3">
-                          <span className="buy-in">Buy-in €{tournament.buyIn}</span>
-                          <span className="prize-pool">€{tournament.prizePool.toLocaleString()} GTD</span>
-                        </div>
-                        
-                        <div className="text-sm text-muted-foreground">
-                          <p>More details about this tournament can be found in our mobile app.</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="card-highlight p-6 text-center">
-                    <p className="mb-4">No upcoming tournaments at this casino.</p>
-                    <p className="text-sm text-muted-foreground">
-                      Check back soon or download our app for the latest updates.
-                    </p>
+                {casino.phoneNumber && (
+                  <div>
+                    <div className="text-sm text-muted-foreground mb-1">Phone</div>
+                    <div className="font-medium">{casino.phoneNumber}</div>
                   </div>
                 )}
                 
-                <div className="mt-10 text-center">
-                  <p className="mb-4 text-muted-foreground">
-                    Find more tournaments and real-time updates in our mobile app.
-                  </p>
-                  <a 
-                    href="/#download" 
-                    className="app-download-button px-6 py-3 rounded-md text-white font-medium inline-flex items-center"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
-                    Download App
+                {casino.email && (
+                  <div>
+                    <div className="text-sm text-muted-foreground mb-1">Email</div>
+                    <div className="font-medium">{casino.email}</div>
+                  </div>
+                )}
+                
+                <div>
+                  <div className="text-sm text-muted-foreground mb-1">Website</div>
+                  <a href="#" className="text-primary hover:underline flex items-center gap-1">
+                    <Globe size={16} />
+                    <span>Visit website</span>
                   </a>
                 </div>
               </div>
+            </div>
+            
+            <div>
+              <h3 className="text-xl font-semibold mb-4 border-b border-border pb-2">Location</h3>
+              <div className="h-64 bg-muted rounded-lg overflow-hidden">
+                <div className="text-center p-4">
+                  <p>Map would be displayed here</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Lat: {casino.latitude}, Lng: {casino.longitude}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-12 bg-background">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-bold mb-6">Upcoming Tournaments</h2>
+            
+            {casinoTournaments.length > 0 ? (
+              <div className="space-y-4">
+                {casinoTournaments.map(tournament => (
+                  <Card
+                    key={tournament.id}
+                    className="card-highlight p-6 border border-white/10"
+                  >
+                    <h3 className="text-xl font-semibold mb-2">{tournament.title}</h3>
+                    
+                    <div className="text-sm text-muted-foreground mb-4">
+                      {new Date(tournament.date).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-3 mb-3">
+                      <span className="buy-in">Buy-in €{tournament.buyIn}</span>
+                      <span className="prize-pool">€{tournament.prizePool.toLocaleString()} GTD</span>
+                    </div>
+                    
+                    <div className="text-sm text-muted-foreground">
+                      <p>More details about this tournament can be found in our mobile app.</p>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="card-highlight p-6 text-center">
+                <p className="mb-4">No upcoming tournaments at this casino.</p>
+                <p className="text-sm text-muted-foreground">
+                  Check back soon or download our app for the latest updates.
+                </p>
+              </Card>
+            )}
+            
+            <div className="mt-10 text-center">
+              <p className="mb-4 text-muted-foreground">
+                Find more tournaments and real-time updates in our mobile app.
+              </p>
+              <a 
+                href="/#download" 
+                className="app-download-button px-6 py-3 rounded-md text-white font-medium inline-flex items-center"
+              >
+                <Download className="mr-2" size={20} />
+                Download App
+              </a>
             </div>
           </div>
         </section>

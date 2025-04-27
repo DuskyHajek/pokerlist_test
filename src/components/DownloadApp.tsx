@@ -1,9 +1,17 @@
 import React from "react";
+import { Smartphone, Apple } from "lucide-react";
 
 const DownloadApp = () => {
   return (
-    <section id="download" className="py-16 md:py-24 hero-gradient relative overflow-hidden">
-      <div className="container mx-auto px-4">
+    <section className="py-16 md:py-24 bg-gradient-to-b from-pokerDarkBlue to-background" id="download">
+      <div className="container mx-auto px-4 text-center">
+        <h2 className="text-3xl font-bold mb-6">
+          Get the PokerList App
+        </h2>
+        <p className="text-muted-foreground max-w-xl mx-auto mb-10">
+          Access real-time cash game info, tournament schedules, and exclusive features on the go. Available soon!
+        </p>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
           <div className="text-center md:text-left">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
@@ -50,14 +58,14 @@ const DownloadApp = () => {
                 href="#" 
                 className="border border-white hover:bg-white/10 px-6 py-3 rounded-md text-white font-medium inline-flex items-center justify-center transition-colors"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+                <Smartphone className="mr-2" size={20} />
                 Google Play
               </a>
               <a 
                 href="#" 
                 className="border border-white hover:bg-white/10 px-6 py-3 rounded-md text-white font-medium inline-flex items-center justify-center transition-colors"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/><path d="M10 2c1 .5 2 2 2 5"/></svg>
+                <Apple className="mr-2" size={20} />
                 App Store
               </a>
             </div>

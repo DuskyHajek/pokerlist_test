@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Download } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card } from "@/components/ui/card";
 
 interface CashGame {
   id: string;
@@ -19,7 +20,7 @@ interface CashGame {
 }
 
 const CashGameListItemSkeleton = () => (
-  <div className="card-highlight p-4 md:p-6 flex flex-col md:flex-row md:items-center gap-4 border border-white/10">
+  <Card className="card-highlight p-6 flex flex-col md:flex-row md:items-center gap-4 animate-pulse">
     <Skeleton className="w-12 h-12 rounded-full flex-shrink-0" />
     <div className="flex-grow space-y-2">
       <Skeleton className="h-4 w-32" />
@@ -30,7 +31,7 @@ const CashGameListItemSkeleton = () => (
       <Skeleton className="buy-in h-6 w-20" />
     </div>
     <Skeleton className="hidden md:block ml-2 h-6 w-6" />
-  </div>
+  </Card>
 );
 
 const CashGamesPage = () => {
@@ -82,7 +83,7 @@ const CashGamesPage = () => {
             <h1 className="text-4xl md:text-5xl font-bold mb-6 text-center">
               Live Cash Games
             </h1>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto text-center mb-8">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-center mb-8">
               Find active cash game tables running now in poker rooms
             </p>
           </div>
@@ -107,9 +108,9 @@ const CashGamesPage = () => {
                   const stakes = `${currencySymbol}${game.smallblind}/${currencySymbol}${game.bigblind}`;
 
                   return (
-                    <div
+                    <Card
                       key={game.id}
-                      className="card-highlight p-4 md:p-6 flex flex-col md:flex-row md:items-center gap-4 border border-white/10 hover:border-primary/50 transition-colors"
+                      className="card-highlight p-6 flex flex-col md:flex-row md:items-center gap-4 hover:border-primary/50 transition-colors"
                     >
                       <div className="w-12 h-12 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-sm text-muted-foreground">
                         {game.clubname.substring(0, 1) || 'P'}
@@ -117,12 +118,12 @@ const CashGamesPage = () => {
 
                       <div className="flex-grow">
                         <div className="text-sm text-primary mb-1">{game.clubname}</div>
-                        <h3 className="text-lg font-semibold">{game.gametype}</h3>
+                        <h3 className="text-xl font-semibold">{game.gametype}</h3>
                       </div>
 
                       <div className="flex flex-wrap gap-2 mt-3 md:mt-0">
-                        <span className="buy-in-chip">{stakes}</span>
-                        <span className="prize-pool-chip">Players: {game.players}</span>
+                        <span className="px-2 py-1 text-xs font-semibold rounded bg-pokerBlue text-white">{stakes}</span>
+                        <span className="ml-2 px-2 py-1 text-xs font-semibold rounded bg-pokerPurple text-white">Players: {game.players}</span>
                       </div>
 
                       <div className="text-right flex-shrink-0 mt-3 md:mt-0 space-y-1 w-24">
@@ -131,7 +132,7 @@ const CashGamesPage = () => {
                       </div>
 
                       <ChevronRight className="hidden md:block ml-2 text-muted-foreground" />
-                    </div>
+                    </Card>
                   );
                 })}
               </div>
@@ -144,7 +145,7 @@ const CashGamesPage = () => {
                   href="/#download"
                   className="app-download-button px-6 py-3 rounded-md text-white font-medium inline-flex items-center"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+                  <Download className="mr-2" size={20} />
                   Download App
                 </a>
               </div>

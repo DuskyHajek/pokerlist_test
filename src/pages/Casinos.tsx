@@ -6,6 +6,8 @@ import { countries } from "../data/mockData";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Search } from 'lucide-react';
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 const Casinos = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,13 +25,13 @@ const Casinos = () => {
       <Navbar />
       
       <main className="flex-grow pt-16">
-        <div className="hero-gradient-casinos hero-lines-casinos py-16 md:py-24">
+        <div className="hero-gradient-casinos hero-lines-casinos py-16 md:py-24 text-center">
           <div className="container mx-auto px-4">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 text-center animate-fade-in">
-              Poker Rooms Worldwide
+              Poker Casinos Worldwide
             </h1>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto text-center mb-8 animate-fade-in">
-              Find the best poker venues in your country
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-center mb-8 animate-fade-in">
+              Discover top poker rooms and casinos across the globe.
             </p>
           </div>
         </div>
@@ -53,18 +55,19 @@ const Casinos = () => {
                   <Link
                     key={country.code}
                     to={`/casinos/${country.code}`}
-                    className="card-highlight group p-6 flex flex-col items-center justify-center hover:scale-105 transition-all duration-300 animate-fade-in"
+                    className={cn(
+                      "block group p-4 flex flex-col items-center justify-center hover:scale-105 transition-all duration-300 animate-fade-in", 
+                      "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
+                    )}
                     style={{
                       animationDelay: `${index * 100}ms`
                     }}
                   >
-                    <div className="relative w-24 h-16 mb-4 overflow-hidden rounded-lg shadow-lg">
-                      <img
-                        src={country.flag}
-                        alt={`${country.name} Flag`}
-                        className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300 bg-muted"
-                      />
-                    </div>
+                    <img
+                      src={country.flag}
+                      alt={`${country.name} Flag`}
+                      className="w-16 h-12 object-cover rounded shadow bg-muted mb-3 transform group-hover:scale-110 transition-transform duration-300"
+                    />
                     <span className="font-medium text-center group-hover:text-primary transition-colors">
                       {country.name}
                     </span>

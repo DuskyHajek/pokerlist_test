@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
+import { Download, LayoutGrid } from "lucide-react";
 
 const HeroSection = () => {
   const [scrollY, setScrollY] = useState(0);
@@ -44,7 +46,7 @@ const HeroSection = () => {
             </h1>
             
             <p 
-              className="text-lg md:text-xl text-gray-300 mb-8 max-w-lg animate-fade-in"
+              className="text-lg md:text-xl text-muted-foreground mb-8 max-w-lg animate-fade-in"
               style={{ animationDelay: '0.3s' }}
             >
               Discover tournaments, cash games, and poker rooms near you with PokerList - your pocket poker companion.
@@ -59,7 +61,7 @@ const HeroSection = () => {
                 className="relative group app-download-button px-6 py-3 rounded-md text-white font-semibold text-lg inline-flex items-center justify-center overflow-hidden"
               >
                 <div className="absolute inset-0 w-full h-full transition-all duration-300 scale-0 group-hover:scale-100 group-hover:bg-gradient-to-r from-pokerPurple to-pokerBlue rounded-md"></div>
-                <svg xmlns="http://www.w3.org/2000/svg" className="relative z-10 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+                <Download className="relative z-10 mr-2" size={20} />
                 <span className="relative z-10">Download App</span>
               </a>
               
@@ -67,7 +69,7 @@ const HeroSection = () => {
                 href="#tournaments" 
                 className="border border-white/20 hover:border-primary/80 hover:text-primary px-6 py-3 rounded-md text-white font-semibold text-lg inline-flex items-center justify-center transition-all duration-300 active:scale-95"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="3" x2="21" y1="15" y2="15"/><line x1="9" x2="9" y1="3" y2="21"/><line x1="15" x2="15" y1="3" y2="21"/></svg>
+                <LayoutGrid className="mr-2" size={20} />
                 Browse Events
               </a>
             </div>
@@ -76,18 +78,18 @@ const HeroSection = () => {
               className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 animate-fade-in"
               style={{ animationDelay: '0.5s' }}
             >
-              <div className="card-highlight p-4 text-center">
+              <Card className="card-highlight p-6 text-center">
                 <span className="text-3xl font-bold bg-gradient-to-r from-pokerPurple to-pokerBlue bg-clip-text text-transparent">1000+</span>
-                <span className="text-gray-400 block mt-1 text-sm">Tournaments</span>
-              </div>
-              <div className="card-highlight p-4 text-center">
+                <span className="text-muted-foreground block mt-1 text-sm">Tournaments</span>
+              </Card>
+              <Card className="card-highlight p-6 text-center">
                 <span className="text-3xl font-bold bg-gradient-to-r from-pokerPurple to-pokerBlue bg-clip-text text-transparent">500+</span>
-                <span className="text-gray-400 block mt-1 text-sm">Casinos</span>
-              </div>
-              <div className="card-highlight p-4 text-center">
+                <span className="text-muted-foreground block mt-1 text-sm">Casinos</span>
+              </Card>
+              <Card className="card-highlight p-6 text-center">
                 <span className="text-3xl font-bold bg-gradient-to-r from-pokerPurple to-pokerBlue bg-clip-text text-transparent">25+</span>
-                <span className="text-gray-400 block mt-1 text-sm">Countries</span>
-              </div>
+                <span className="text-muted-foreground block mt-1 text-sm">Countries</span>
+              </Card>
             </div>
           </div>
 

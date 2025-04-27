@@ -6,6 +6,7 @@ import { Helmet } from 'react-helmet-async';
 import { Skeleton } from '@/components/ui/skeleton'; // For loading state
 import { format } from 'date-fns'; // For formatting dates
 import { CalendarDays, Euro } from 'lucide-react'; // Import icons
+import { Card } from "@/components/ui/card"; // Import Card
 
 // Define an interface for the Festival object (including tournaments)
 interface Tournament {
@@ -163,7 +164,7 @@ const FestivalDetail = () => {
          <Helmet><title>Not Found | PokerList</title></Helmet>
         <Navbar />
         <main className="flex-grow container mx-auto px-4 py-12 pt-24 text-center">
-          <h1 className="text-2xl font-bold mb-4">Festival Not Found</h1>
+          <h1 className="text-3xl font-bold mb-4">Festival Not Found</h1>
           <p className="text-muted-foreground">Could not find details for festival ID {clubid}.</p>
            <Link to="/events" className="mt-6 inline-block text-primary hover:underline">Go back to Events</Link>
         </main>
@@ -203,7 +204,7 @@ const FestivalDetail = () => {
         </div>
 
         {/* --- Tournament List --- */}
-        <h2 className="text-2xl font-semibold mb-6">Tournament Schedule</h2>
+        <h2 className="text-3xl font-bold mb-6">Tournament Schedule</h2>
         <div className="space-y-4">
           {festival.tournaments.length > 0 ? (
             festival.tournaments.map((tournament) => {
@@ -211,7 +212,7 @@ const FestivalDetail = () => {
               const startDateObj = new Date(tournament.startdate);
               
               return (
-              <div key={tournament.tid} className="card-highlight p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-4 border border-white/10">
+              <Card key={tournament.tid} className="card-highlight p-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 {/* Left side: Date and Title */}
                 <div className="flex-grow">
                    {/* Date and Time - Formatted from single startdate field */}
@@ -220,28 +221,26 @@ const FestivalDetail = () => {
                      {format(startDateObj, 'eee, MMM d, yyyy')} @ {format(startDateObj, 'HH:mm')}
                   </p>
                   {/* Title */}
-                  <h3 className="text-lg font-semibold">{tournament.title}</h3>
+                  <h3 className="text-xl font-semibold">{tournament.title}</h3>
                 </div>
                 {/* Right side: Buy-in and Guarantee */}
                 <div className="flex-shrink-0 flex flex-row items-center sm:items-start space-x-2 pt-1">
                    {/* Buy-in Pill */}
                    <span
-                    className="text-xs font-semibold text-white px-3 py-1 rounded-full flex items-center"
-                    style={{ backgroundColor: '#16adc8' }} // Cyan background
+                    className="text-xs font-semibold text-white px-3 py-1 rounded-full flex items-center bg-pokerBlue"
                    >
                     Buy-in: {tournament.buyin} <Euro className="w-3 h-3 ml-1" />
                    </span>
                   {/* Guarantee Pill - Display only if available */}
                   {tournament.guaranteed && (
                     <span
-                      className="text-xs font-semibold text-white px-3 py-1 rounded-full flex items-center"
-                      style={{ backgroundColor: '#ab64e6' }} // Purple background
+                      className="text-xs font-semibold text-white px-3 py-1 rounded-full flex items-center bg-pokerPurple"
                     >
                       {tournament.guaranteed} <Euro className="w-3 h-3 ml-0.5 mr-0.5" /> GTD
                     </span>
                   )}
                 </div>
-              </div>
+              </Card>
             );
           })
           ) : (
