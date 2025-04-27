@@ -79,7 +79,7 @@ const CashGamesPage = () => {
       <Navbar />
 
       <main className="flex-grow pt-16">
-        <div className="hero-gradient-live py-16 md:py-24 text-center h-[280px]">
+        <div className="hero-gradient-live py-16 md:py-24 text-center h-[360px] md:h-[280px]">
           <div className="container mx-auto px-4 flex flex-col items-center justify-center h-full">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 text-center animate-fade-in">
               Live Cash Games
