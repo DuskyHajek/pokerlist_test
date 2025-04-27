@@ -14,7 +14,7 @@ const CountrySelector = () => {
           Explore poker rooms and casinos in different countries. Click on a country to see all venues.
         </p>
         
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
+        <div className="flex flex-wrap justify-center gap-4 md:gap-6">
           {countries.map((country) => (
             <Link
               key={country.code}

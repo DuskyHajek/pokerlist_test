@@ -79,12 +79,12 @@ const CashGamesPage = () => {
       <Navbar />
 
       <main className="flex-grow pt-16">
-        <div className="hero-gradient-live hero-lines-live py-12 md:py-20">
-          <div className="container mx-auto px-4">
-            <h1 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 text-center">
+        <div className="hero-gradient-live hero-lines-live py-16 md:py-24 text-center h-[280px]">
+          <div className="container mx-auto px-4 flex flex-col items-center justify-center h-full">
+            <h1 className="text-4xl md:text-5xl font-bold mb-6 text-center animate-fade-in">
               Live Cash Games
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto text-center mb-6 md:mb-8">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-center mb-8 animate-fade-in">
               Find active cash game tables running now in poker rooms
             </p>
           </div>
