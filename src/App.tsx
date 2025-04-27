@@ -11,6 +11,7 @@ import CasinoDetail from "./pages/CasinoDetail";
 import CasinosByCountry from "./pages/CasinosByCountry";
 import FestivalDetail from "./pages/FestivalDetail";
 import NotFound from "./pages/NotFound";
+import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/casinos" element={<Casinos />} />

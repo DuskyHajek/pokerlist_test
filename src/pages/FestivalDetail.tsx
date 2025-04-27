@@ -7,6 +7,8 @@ import { Skeleton } from '@/components/ui/skeleton'; // For loading state
 import { format } from 'date-fns'; // For formatting dates
 import { CalendarDays, Euro } from 'lucide-react'; // Import icons
 import { Card } from "@/components/ui/card"; // Import Card
+import DownloadApp from '../components/DownloadApp'; // Import DownloadApp
+import OtherFestivalsTable from '../components/OtherFestivalsTable'; // Import the new table component
 
 // Define an interface for the Festival object (including tournaments)
 interface Tournament {
@@ -56,8 +58,10 @@ const DetailSkeleton = () => (
 const FestivalDetail = () => {
   const { clubid } = useParams<{ clubid: string }>();
   const [festival, setFestival] = useState<Festival | null>(null);
+  const [otherFestivals, setOtherFestivals] = useState<Festival[]>([]); // State for other festivals
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAllTournaments, setShowAllTournaments] = useState(false); // State for expanding tournaments
 
   useEffect(() => {
     let isMounted = true;
@@ -110,12 +114,16 @@ const FestivalDetail = () => {
         );
         
         // Find the specific festival by clubid (comparing as strings for safety)
-        const foundFestival = grouped.find(f => f.clubid.toString() === clubid);
+        const currentFestivalId = clubid; // Keep track of the current ID
+        const foundFestival = grouped.find(f => f.clubid.toString() === currentFestivalId);
+        const otherFestivalsData = grouped.filter(f => f.clubid.toString() !== currentFestivalId);
 
         if (foundFestival) {
           setFestival(foundFestival);
+          setOtherFestivals(otherFestivalsData); // Set the other festivals
         } else {
           setError(`Festival with ID ${clubid} not found.`);
+          setOtherFestivals([]); // Clear other festivals if current not found
         }
         setIsLoading(false);
       })
@@ -128,6 +136,11 @@ const FestivalDetail = () => {
 
     return () => { isMounted = false; };
   }, [clubid]); // Re-run effect if clubid changes
+
+  // Determine which tournaments to display - MOVED DOWN
+  //const displayedTournaments = showAllTournaments
+  //  ? festival.tournaments
+  //  : festival.tournaments.slice(0, 10);
 
   // --- Render Logic ---
   if (isLoading) {
@@ -174,6 +187,11 @@ const FestivalDetail = () => {
   }
 
   // --- Successful Render --- 
+  // Determine which tournaments to display - MOVED HERE
+  const displayedTournaments = showAllTournaments
+    ? festival.tournaments
+    : festival.tournaments.slice(0, 10);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Helmet>
@@ -203,52 +221,71 @@ const FestivalDetail = () => {
           </div>
         </div>
 
-        {/* --- Tournament List --- */}
-        <h2 className="text-3xl font-bold mb-6">Tournament Schedule</h2>
-        <div className="space-y-4">
-          {festival.tournaments.length > 0 ? (
-            festival.tournaments.map((tournament) => {
-              // Create Date object once
-              const startDateObj = new Date(tournament.startdate);
-              
-              return (
-              <Card key={tournament.tid} className="card-highlight p-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                {/* Left side: Date and Title */}
-                <div className="flex-grow">
-                   {/* Date and Time - Formatted from single startdate field */}
-                   <p className="text-sm text-muted-foreground mb-1.5 flex items-center">
-                     <CalendarDays className="w-4 h-4 mr-1.5" />
-                     {format(startDateObj, 'eee, MMM d, yyyy')} @ {format(startDateObj, 'HH:mm')}
-                  </p>
-                  {/* Title */}
-                  <h3 className="text-xl font-semibold">{tournament.title}</h3>
-                </div>
-                {/* Right side: Buy-in and Guarantee */}
-                <div className="flex-shrink-0 flex flex-row items-center sm:items-start space-x-2 pt-1">
-                   {/* Buy-in Pill */}
-                   <span
-                    className="text-xs font-semibold text-white px-3 py-1 rounded-full flex items-center bg-pokerBlue"
-                   >
-                    Buy-in: {tournament.buyin} <Euro className="w-3 h-3 ml-1" />
-                   </span>
-                  {/* Guarantee Pill - Display only if available */}
-                  {tournament.guaranteed && (
-                    <span
-                      className="text-xs font-semibold text-white px-3 py-1 rounded-full flex items-center bg-pokerPurple"
-                    >
-                      {tournament.guaranteed} <Euro className="w-3 h-3 ml-0.5 mr-0.5" /> GTD
-                    </span>
-                  )}
-                </div>
-              </Card>
-            );
-          })
-          ) : (
-            <p className="text-muted-foreground">No specific tournaments listed for this festival.</p>
-          )}
-        </div>
+        {/* --- Main Content Area (Tournaments & Other Festivals) --- */}
+        <h2 className="text-3xl font-bold mb-2">Tournament Schedule</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          {/* Left Side: Tournament Cards */}
+          <div className="lg:col-span-2 space-y-4">
+            {festival.tournaments.length > 0 ? (
+              displayedTournaments.map((tournament) => {
+                // Create Date object once
+                const startDateObj = new Date(tournament.startdate);
+                
+                return (
+                <Card key={tournament.tid} className="card-highlight p-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  {/* Left side: Date and Title */}
+                  <div className="flex-grow">
+                     {/* Date and Time - Formatted from single startdate field */}
+                     <p className="text-sm text-muted-foreground mb-1.5 flex items-center">
+                       <CalendarDays className="w-4 h-4 mr-1.5" />
+                       {format(startDateObj, 'eee, MMM d, yyyy')} @ {format(startDateObj, 'HH:mm')}
+                    </p>
+                    {/* Title */}
+                    <h3 className="text-xl font-semibold">{tournament.title}</h3>
+                  </div>
+                  {/* Right side: Buy-in and Guarantee */}
+                  <div className="flex-shrink-0 flex flex-row items-center sm:items-start space-x-2 pt-1">
+                     {/* Buy-in Pill */}
+                     <span
+                      className="text-xs font-semibold text-white px-3 py-1 rounded-full flex items-center bg-pokerBlue"
+                     >
+                      Buy-in: {tournament.buyin} <Euro className="w-3 h-3 ml-1" />
+                     </span>
+                    {/* Guarantee Pill - Display only if available */}
+                    {tournament.guaranteed && (
+                      <span
+                        className="text-xs font-semibold text-white px-3 py-1 rounded-full flex items-center bg-pokerPurple"
+                      >
+                        {tournament.guaranteed} <Euro className="w-3 h-3 ml-0.5 mr-0.5" /> GTD
+                      </span>
+                    )}
+                  </div>
+                </Card>
+              );
+            })
+            ) : (
+              <p className="text-muted-foreground">No specific tournaments listed for this festival.</p>
+            )}
+             {/* --- Show More/Less Button --- */}
+            {festival.tournaments.length > 10 && (
+               <div className="text-center mt-6">
+                 <button
+                   onClick={() => setShowAllTournaments(!showAllTournaments)}
+                   className="text-primary hover:underline font-semibold px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50"
+                 >
+                   {showAllTournaments ? 'Show Less Tournaments' : `Show All ${festival.tournaments.length} Tournaments`}
+                 </button>
+               </div>
+            )}
+          </div>
 
+          {/* Right Side: Other Festivals Table */}
+          <div className="lg:col-span-1">
+            <OtherFestivalsTable festivals={otherFestivals} />
+          </div>
+        </div>
       </main>
+      <DownloadApp />
       <Footer />
     </div>
   );

@@ -4,6 +4,7 @@ import Footer from "../components/Footer";
 import { ChevronRight, Download } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
+import DownloadApp from "../components/DownloadApp";
 
 interface CashGame {
   id: string;
@@ -137,21 +138,11 @@ const CashGamesPage = () => {
                 })}
               </div>
             )}
-
-            <div className="mt-12 text-center text-muted-foreground">
-              <p>For more games and real-time updates, download our app.</p>
-              <div className="mt-4">
-                <a
-                  href="/#download"
-                  className="app-download-button px-6 py-3 rounded-md text-white font-medium inline-flex items-center"
-                >
-                  <Download className="mr-2" size={20} />
-                  Download App
-                </a>
-              </div>
-            </div>
           </div>
         </section>
+
+        <DownloadApp />
+
       </main>
 
       <Footer />
