@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Helmet } from 'react-helmet-async';
@@ -9,6 +9,7 @@ import { CalendarDays, Euro } from 'lucide-react'; // Import icons
 import { Card } from "@/components/ui/card"; // Import Card
 import DownloadApp from '../components/DownloadApp'; // Import DownloadApp
 import OtherFestivalsTable from '../components/OtherFestivalsTable'; // Import the new table component
+import { slugify } from "@/lib/utils"; // Import slugify from utils
 
 // Define an interface for the Festival object (including tournaments)
 interface Tournament {
@@ -33,6 +34,20 @@ interface Festival {
   tournaments: Tournament[];
 }
 
+// --- Helper Function ---
+/*
+const slugify = (text: string): string => {
+  return text
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(/[^\w\-]+/g, '') // Remove all non-word chars
+    .replace(/\-\-+/g, '-') // Replace multiple - with single -
+    .replace(/^-+/, '') // Trim - from start of text
+    .replace(/-+$/, ''); // Trim - from end of text
+};
+*/
+
 // --- Loading Skeletons ---
 const DetailSkeleton = () => (
   <div className="container mx-auto px-4 py-12 pt-24 animate-pulse">
@@ -56,7 +71,8 @@ const DetailSkeleton = () => (
 );
 
 const FestivalDetail = () => {
-  const { clubid } = useParams<{ clubid: string }>();
+  const { clubid, slug } = useParams<{ clubid: string; slug?: string }>();
+  const navigate = useNavigate();
   const [festival, setFestival] = useState<Festival | null>(null);
   const [otherFestivals, setOtherFestivals] = useState<Festival[]>([]); // State for other festivals
   const [isLoading, setIsLoading] = useState(true);
@@ -136,6 +152,17 @@ const FestivalDetail = () => {
 
     return () => { isMounted = false; };
   }, [clubid]); // Re-run effect if clubid changes
+
+  // Effect for checking slug and redirecting
+  useEffect(() => {
+    if (festival && clubid) {
+      const correctSlug = slugify(festival.clubname);
+      // Redirect if slug is missing or incorrect
+      if (!slug || slug !== correctSlug) {
+        navigate(`/festival/${clubid}/${correctSlug}`, { replace: true });
+      }
+    }
+  }, [festival, slug, clubid, navigate]); // Dependencies for slug check
 
   // Determine which tournaments to display - MOVED DOWN
   //const displayedTournaments = showAllTournaments

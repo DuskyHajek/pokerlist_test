@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table"; // Assuming Shadcn UI table components are here
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"; // For wrapping the table
+import { slugify } from "@/lib/utils"; // Import slugify
 
 // Reuse the Festival interface (consider defining it in a shared types file later)
 interface Festival {
@@ -48,7 +49,10 @@ const OtherFestivalsTable: React.FC<OtherFestivalsTableProps> = ({ festivals }) 
             {festivals.map((festival) => (
               <TableRow key={festival.clubid}>
                 <TableCell className="font-medium align-middle">
-                  <Link to={`/festival/${festival.clubid}`} className="flex items-center gap-2 text-pokerBlue hover:underline group">
+                  <Link
+                    to={`/festival/${festival.clubid}/${slugify(festival.clubname)}`}
+                    className="flex items-center gap-2 text-pokerBlue hover:underline group"
+                  >
                     {/* Small Circle Logo */}
                     <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-muted">
                       {festival.club_logourl && (

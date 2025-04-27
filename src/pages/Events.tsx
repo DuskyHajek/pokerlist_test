@@ -6,7 +6,7 @@ import Footer from "../components/Footer";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn, slugify } from "@/lib/utils";
 
 // --- Skeleton Component for Event Card ---
 const EventCardSkeleton = () => (
@@ -128,7 +128,7 @@ const Events = () => {
                   ))
                 : events.map((festival) => (
                     <Link
-                      to={`/festival/${festival.clubid}`}
+                      to={`/festival/${festival.clubid}/${slugify(festival.clubname)}`}
                       key={festival.clubid}
                       className={cn(
                         "block rounded-lg border bg-card text-card-foreground shadow-sm",

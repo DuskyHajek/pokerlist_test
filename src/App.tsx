@@ -29,7 +29,7 @@ const App = () => (
           <Route path="/casino/:id" element={<CasinoDetail />} />
           <Route path="/events" element={<Events />} />
           <Route path="/cash-games" element={<CashGamesPage />} />
-          <Route path="/festival/:clubid" element={<FestivalDetail />} />
+          <Route path="/festival/:clubid/:slug?" element={<FestivalDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
