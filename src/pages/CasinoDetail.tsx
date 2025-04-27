@@ -50,7 +50,7 @@ const CasinoDetail = () => {
         <div className="hero-gradient py-16">
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row items-center gap-6 max-w-4xl mx-auto">
-              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white/20">
+              <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white/20 flex-shrink-0">
                 <img 
                   src={casino.logo} 
                   alt={casino.name} 
@@ -145,9 +145,9 @@ const CasinoDetail = () => {
                 {casinoTournaments.map(tournament => (
                   <Card
                     key={tournament.id}
-                    className="card-highlight p-6 border border-white/10"
+                    className="card-highlight p-4 sm:p-6 border border-white/10"
                   >
-                    <h3 className="text-xl font-semibold mb-2">{tournament.title}</h3>
+                    <h3 className="text-lg sm:text-xl font-semibold mb-2">{tournament.title}</h3>
                     
                     <div className="text-sm text-muted-foreground mb-4">
                       {new Date(tournament.date).toLocaleDateString('en-US', {

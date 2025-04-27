@@ -132,7 +132,7 @@ const Events = () => {
                       key={festival.clubid}
                       className={cn(
                         "block rounded-lg border bg-card text-card-foreground shadow-sm",
-                        "card-highlight p-6 flex flex-col md:flex-row gap-6 hover:border-primary/50 transition-all group",
+                        "card-highlight p-4 md:p-6 flex flex-col md:flex-row gap-4 md:gap-6 hover:border-primary/50 transition-all group",
                         "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       )}
                     >

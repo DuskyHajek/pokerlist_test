@@ -232,22 +232,22 @@ const FestivalDetail = () => {
                 const startDateObj = new Date(tournament.startdate);
                 
                 return (
-                <Card key={tournament.tid} className="card-highlight p-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <Card key={tournament.tid} className="card-highlight p-4 sm:p-6 flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
                   {/* Left side: Date and Title */}
                   <div className="flex-grow">
                      {/* Date and Time - Formatted from single startdate field */}
-                     <p className="text-sm text-muted-foreground mb-1.5 flex items-center">
+                     <p className="text-sm text-muted-foreground mb-1 sm:mb-1.5 flex items-center">
                        <CalendarDays className="w-4 h-4 mr-1.5" />
                        {format(startDateObj, 'eee, MMM d, yyyy')} @ {format(startDateObj, 'HH:mm')}
                     </p>
                     {/* Title */}
-                    <h3 className="text-xl font-semibold">{tournament.title}</h3>
+                    <h3 className="text-lg sm:text-xl font-semibold">{tournament.title}</h3>
                   </div>
                   {/* Right side: Buy-in and Guarantee */}
-                  <div className="flex-shrink-0 flex flex-row items-center sm:items-start space-x-2 pt-1">
+                  <div className="flex-shrink-0 flex flex-row flex-wrap items-center sm:items-start gap-x-2 gap-y-1 pt-1">
                      {/* Buy-in Pill */}
                      <span
-                      className="text-xs font-semibold text-white px-3 py-1 rounded-full flex items-center bg-pokerBlue"
+                      className="text-xs font-semibold text-white px-2.5 sm:px-3 py-1 rounded-full flex items-center bg-pokerBlue"
                      >
                       Buy-in: {tournament.buyin} <Euro className="w-3 h-3 ml-1" />
                      </span>

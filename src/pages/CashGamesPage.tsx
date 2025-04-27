@@ -21,15 +21,15 @@ interface CashGame {
 }
 
 const CashGameListItemSkeleton = () => (
-  <Card className="card-highlight p-6 flex flex-col md:flex-row md:items-center gap-4 animate-pulse">
-    <Skeleton className="w-12 h-12 rounded-full flex-shrink-0" />
+  <Card className="card-highlight p-4 md:p-6 flex flex-col md:flex-row md:items-center gap-3 md:gap-4 animate-pulse">
+    <Skeleton className="w-10 h-10 md:w-12 md:h-12 rounded-full flex-shrink-0" />
     <div className="flex-grow space-y-2">
       <Skeleton className="h-4 w-32" />
       <Skeleton className="h-5 w-4/5" />
       <Skeleton className="h-4 w-2/5" />
     </div>
-    <div className="flex gap-3 mt-3 md:mt-0">
-      <Skeleton className="buy-in h-6 w-20" />
+    <div className="flex gap-2 md:gap-3 mt-2 md:mt-0">
+      <Skeleton className="buy-in h-5 md:h-6 w-16 md:w-20" />
     </div>
     <Skeleton className="hidden md:block ml-2 h-6 w-6" />
   </Card>
@@ -79,21 +79,21 @@ const CashGamesPage = () => {
       <Navbar />
 
       <main className="flex-grow pt-16">
-        <div className="hero-gradient-live hero-lines-live py-16 md:py-24">
+        <div className="hero-gradient-live hero-lines-live py-12 md:py-20">
           <div className="container mx-auto px-4">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 text-center">
+            <h1 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 text-center">
               Live Cash Games
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-center mb-8">
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto text-center mb-6 md:mb-8">
               Find active cash game tables running now in poker rooms
             </p>
           </div>
         </div>
 
-        <section className="py-12 bg-background">
+        <section className="py-8 md:py-12 bg-background">
           <div className="container mx-auto px-4">
             {isLoading ? (
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 {Array.from({ length: 8 }).map((_, index) => (
                   <CashGameListItemSkeleton key={`skeleton-${index}`} />
                 ))}
@@ -101,9 +101,9 @@ const CashGamesPage = () => {
             ) : error ? (
               <div className="text-center text-red-500 py-8">{error}</div>
             ) : cashGames.length === 0 ? (
-              <div className="text-center text-muted-foreground py-8">No live cash games found matching your criteria.</div>
+              <div className="text-center text-muted-foreground py-8">No live cash games found.</div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 {cashGames.map(game => {
                   const currencySymbol = formatCurrency(game.currency);
                   const stakes = `${currencySymbol}${game.smallblind}/${currencySymbol}${game.bigblind}`;
@@ -111,28 +111,30 @@ const CashGamesPage = () => {
                   return (
                     <Card
                       key={game.id}
-                      className="card-highlight p-6 flex flex-col md:flex-row md:items-center gap-4 hover:border-primary/50 transition-colors"
+                      className="card-highlight p-4 flex items-start md:items-center gap-3 hover:border-primary/50 transition-colors"
                     >
-                      <div className="w-12 h-12 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-sm text-muted-foreground">
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-sm text-muted-foreground mt-1 md:mt-0">
                         {game.clubname.substring(0, 1) || 'P'}
                       </div>
 
-                      <div className="flex-grow">
-                        <div className="text-sm text-primary mb-1">{game.clubname}</div>
-                        <h3 className="text-xl font-semibold">{game.gametype}</h3>
+                      <div className="flex-grow flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-2">
+                        <div className="flex-grow">
+                          <div className="text-xs md:text-sm text-primary mb-0.5 md:mb-1 font-medium">{game.clubname}</div>
+                          <h3 className="text-base md:text-lg font-semibold leading-tight">{game.gametype}</h3>
+                        </div>
+
+                        <div className="flex flex-col items-start md:items-end md:flex-row md:items-center gap-1 md:gap-3 text-xs md:text-sm">
+                          <div className="flex items-center gap-2 mt-1 md:mt-0">
+                            <span className="px-1.5 py-0.5 text-xs font-semibold rounded bg-pokerBlue text-white whitespace-nowrap">{stakes}</span>
+                            <span className="px-1.5 py-0.5 text-xs font-semibold rounded bg-pokerPurple text-white whitespace-nowrap">Players: {game.players}</span>
+                          </div>
+                          <div className="text-muted-foreground md:text-right md:w-auto flex-shrink-0 mt-1 md:mt-0">
+                            Updated: {new Date(game.updated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="flex flex-wrap gap-2 mt-3 md:mt-0">
-                        <span className="px-2 py-1 text-xs font-semibold rounded bg-pokerBlue text-white">{stakes}</span>
-                        <span className="ml-2 px-2 py-1 text-xs font-semibold rounded bg-pokerPurple text-white">Players: {game.players}</span>
-                      </div>
-
-                      <div className="text-right flex-shrink-0 mt-3 md:mt-0 space-y-1 w-24">
-                        <div className="text-sm text-muted-foreground">Updated:</div>
-                        <div className="text-xs text-muted-foreground">{new Date(game.updated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                      </div>
-
-                      <ChevronRight className="hidden md:block ml-2 text-muted-foreground" />
+                      <ChevronRight className="hidden md:block ml-1 md:ml-2 text-muted-foreground flex-shrink-0 self-center" />
                     </Card>
                   );
                 })}

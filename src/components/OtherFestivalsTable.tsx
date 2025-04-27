@@ -16,6 +16,7 @@ interface Festival {
   clubname: string;
   club_city: string;
   club_event_duration: string;
+  club_logourl: string; // Add logo URL
   // Add other relevant fields if needed
 }
 
@@ -46,13 +47,24 @@ const OtherFestivalsTable: React.FC<OtherFestivalsTableProps> = ({ festivals }) 
           <TableBody>
             {festivals.map((festival) => (
               <TableRow key={festival.clubid}>
-                <TableCell className="font-medium">
-                   <Link to={`/festival/${festival.clubid}`} className="text-pokerBlue hover:underline">
-                    {festival.clubname}
-                   </Link>
+                <TableCell className="font-medium align-middle">
+                  <Link to={`/festival/${festival.clubid}`} className="flex items-center gap-2 text-pokerBlue hover:underline group">
+                    {/* Small Circle Logo */}
+                    <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-muted">
+                      {festival.club_logourl && (
+                        <img
+                          src={festival.club_logourl.replace(/^http:/, 'https:')}
+                          alt={`${festival.clubname} logo`}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </div>
+                    {/* Festival Name */}
+                    <span className="group-hover:underline">{festival.clubname}</span>
+                  </Link>
                 </TableCell>
-                <TableCell>{festival.club_city}</TableCell>
-                <TableCell>{festival.club_event_duration}</TableCell>
+                <TableCell className="align-middle">{festival.club_city}</TableCell>
+                <TableCell className="align-middle">{festival.club_event_duration}</TableCell>
               </TableRow>
             ))}
           </TableBody>
