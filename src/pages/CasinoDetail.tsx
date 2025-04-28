@@ -7,10 +7,11 @@ import Footer from "../components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { MapPin, Phone, Globe, AlertCircle, ExternalLink, CalendarDays, Users, CircleDollarSign, Image as ImageIcon, Euro } from "lucide-react";
+import { MapPin, Phone, Globe, AlertCircle, ExternalLink, CalendarDays, Users, CircleDollarSign, Image as ImageIcon, Euro, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from 'date-fns';
+import DownloadApp from "../components/DownloadApp";
 
 // --- Updated Casino Interface ---
 interface Casino {
@@ -374,16 +375,27 @@ const CasinoDetail = () => {
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
              <div className="container mx-auto px-4 flex flex-col md:flex-row items-center gap-6 md:gap-8 relative z-10">
                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white/50 bg-muted flex-shrink-0 flex items-center justify-center shadow-lg">
-                 {casino.logo ? (
+                 {casino.logo || casino.imgUrl ? (
                     <img
-                     src={casino.logo}
+                     src={casino.logo || casino.imgUrl}
                      alt={`${casino.name} Logo`}
-                     className="w-full h-full object-contain"
-                     onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                     className="w-full h-full object-cover"
+                     onError={(e) => {
+                         const target = e.currentTarget;
+                         if (casino.imgUrl && target.src !== casino.imgUrl) {
+                             target.src = casino.imgUrl;
+                         } else {
+                             target.style.display = 'none';
+                             const placeholder = target.nextElementSibling;
+                             if (placeholder) placeholder.classList.remove('hidden');
+                         }
+                     }}
                    />
-                 ) : (
-                    <span className="text-muted-foreground text-sm p-2 text-center">No Logo</span>
-                 )}
+                 ) : null}
+                 <span className={cn(
+                     "text-muted-foreground text-sm p-2 text-center",
+                     (casino.logo || casino.imgUrl) ? "hidden" : ""
+                 )}>No Logo</span>
                </div>
                <div className="text-center md:text-left">
                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 drop-shadow-md">
@@ -405,36 +417,29 @@ const CasinoDetail = () => {
                   Casino Information
                 </CardTitle>
               </CardHeader>
-               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 text-card-foreground">
-                 <div className="space-y-4">
-                    {casino.description && (
-                        <div>
-                            <h3 className="text-sm font-medium text-muted-foreground mb-1">Description</h3>
-                            <p className="whitespace-pre-wrap">{casino.description}</p>
-                        </div>
-                    )}
-                   <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2">
-                        <MapPin className="w-4 h-4" /> Address
-                      </h3>
-                      <p>{casino.address || 'N/A'}</p>
-                      <p>{casino.city}{countryName && `, ${countryName}`}</p>
-                   </div>
+               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 text-card-foreground">
+                 <div className="space-y-5">
+                   {casino.address && (
+                       <div>
+                          <h3 className="text-sm font-medium text-muted-foreground mb-1.5 flex items-center gap-2">
+                            <MapPin className="w-4 h-4 flex-shrink-0" /> Address
+                          </h3>
+                          <p className="leading-snug">{casino.address}</p>
+                          <p className="leading-snug">{casino.city}{countryName && `, ${countryName}`}</p>
+                       </div>
+                   )}
                    {casino.contact && (
                      <div>
-                       <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2">
-                         <Phone className="w-4 h-4" /> Contact
+                       <h3 className="text-sm font-medium text-muted-foreground mb-1.5 flex items-center gap-2">
+                         <Phone className="w-4 h-4 flex-shrink-0" /> Contact
                        </h3>
-                       <a href={`tel:${casino.contact}`} className="hover:text-primary transition-colors">{casino.contact}</a>
+                       <a href={`tel:${casino.contact}`} className="text-primary hover:underline transition-colors break-all">{casino.contact}</a>
                      </div>
                    )}
-                 </div>
-
-                  <div className="space-y-4">
-                    {casino.url && (
+                   {casino.url && (
                      <div>
-                       <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2">
-                          <Globe className="w-4 h-4" /> Website
+                       <h3 className="text-sm font-medium text-muted-foreground mb-1.5 flex items-center gap-2">
+                          <Globe className="w-4 h-4 flex-shrink-0" /> Website
                        </h3>
                        <a
                          href={casino.url.startsWith('http') ? casino.url : `http://${casino.url}`}
@@ -446,20 +451,8 @@ const CasinoDetail = () => {
                        </a>
                      </div>
                     )}
-                    {casino.size && (
-                      <div>
-                        <h3 className="text-sm font-medium text-muted-foreground mb-1">Size Indicator</h3>
-                        <p>{casino.size}</p>
-                      </div>
-                    )}
-                    {casino.rank && casino.rank !== "0" && (
-                      <div>
-                        <h3 className="text-sm font-medium text-muted-foreground mb-1">Rank</h3>
-                        <p>{casino.rank}</p>
-                      </div>
-                    )}
-                     {casino.latitude && casino.longitude && (
-                       <div>
+                    {casino.latitude && casino.longitude && (
+                       <div className="pt-1">
                          <Button variant="outline" size="sm" asChild>
                            <a
                             href={`https://www.google.com/maps/search/?api=1&query=${casino.latitude},${casino.longitude}`}
@@ -472,9 +465,64 @@ const CasinoDetail = () => {
                          </Button>
                        </div>
                     )}
+                 </div>
+
+                  <div className="space-y-5">
+                    {casino.description && (
+                        <div>
+                            <h3 className="text-sm font-medium text-muted-foreground mb-1.5 flex items-center gap-2">
+                                <Info className="w-4 h-4 flex-shrink-0" /> Description
+                            </h3>
+                            <p className="whitespace-pre-wrap text-sm leading-relaxed">{casino.description}</p>
+                        </div>
+                    )}
+                    {casino.size && (
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground mb-1.5">Size Indicator</h3>
+                        <p>{casino.size}</p>
+                      </div>
+                    )}
+                    {casino.rank && casino.rank !== "0" && (
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground mb-1.5">Rank</h3>
+                        <p>{casino.rank}</p>
+                      </div>
+                    )}
                   </div>
 
                </CardContent>
+            </Card>
+
+            <Card className="overflow-hidden shadow-lg border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-2xl font-semibold text-foreground">Cash Games</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {cashGames.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Game Type</TableHead>
+                          <TableHead>Stakes</TableHead>
+                          <TableHead>Players</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {cashGames.map((g) => (
+                          <TableRow key={g.id}>
+                            <TableCell className="font-medium">{g.gametype}</TableCell>
+                            <TableCell>{`${g.currency || ''}${g.smallblind}/${g.currency || ''}${g.bigblind}`}</TableCell>
+                            <TableCell>{g.players || 'N/A'}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-4">No cash games reported for this casino at the moment.</p>
+                )}
+              </CardContent>
             </Card>
 
             <Card className="overflow-hidden shadow-lg border-border bg-card">
@@ -533,38 +581,6 @@ const CasinoDetail = () => {
               </CardContent>
             </Card>
 
-             <Card className="overflow-hidden shadow-lg border-border bg-card">
-               <CardHeader>
-                 <CardTitle className="text-2xl font-semibold text-foreground">Cash Games</CardTitle>
-               </CardHeader>
-               <CardContent>
-                 {cashGames.length > 0 ? (
-                   <div className="overflow-x-auto">
-                     <Table>
-                       <TableHeader>
-                         <TableRow>
-                           <TableHead>Game Type</TableHead>
-                           <TableHead>Stakes</TableHead>
-                           <TableHead>Players</TableHead>
-                         </TableRow>
-                       </TableHeader>
-                       <TableBody>
-                         {cashGames.map((g) => (
-                           <TableRow key={g.id}>
-                             <TableCell className="font-medium">{g.gametype}</TableCell>
-                             <TableCell>{`${g.currency || ''}${g.smallblind}/${g.currency || ''}${g.bigblind}`}</TableCell>
-                             <TableCell>{g.players || 'N/A'}</TableCell>
-                           </TableRow>
-                         ))}
-                       </TableBody>
-                     </Table>
-                   </div>
-                 ) : (
-                   <p className="text-muted-foreground text-center py-4">No cash games reported for this casino at the moment.</p>
-                 )}
-               </CardContent>
-             </Card>
-
              {clubPictures.length > 0 && (
                  <Card className="overflow-hidden shadow-lg border-border bg-card">
                    <CardHeader>
@@ -598,6 +614,7 @@ const CasinoDetail = () => {
 
           </div>
         </section>
+        <DownloadApp />
       </main>
       <Footer />
     </div>
