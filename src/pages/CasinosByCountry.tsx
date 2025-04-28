@@ -57,6 +57,24 @@ const parsePokerClubsXml = (xmlString: string): Casino[] => {
   return casinos;
 };
 
+// --- Helper function to generate a URL-friendly slug ---
+const createSlug = (name: string): string => {
+  if (!name) return '';
+  
+  const slug = name
+    .toString()
+    .normalize('NFD') // Split accented characters into base letters and diacritics
+    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+    .toLowerCase()
+    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(/[^\w-]+/g, '') // Remove all non-word chars except hyphen
+    .replace(/--+/g, '-') // Replace multiple - with single -
+    .replace(/^-+/, '') // Trim - from start of text
+    .replace(/-+$/, ''); // Trim - from end of text
+
+  return slug;
+};
+
 // --- Skeleton Component for Casino Card ---
 const CasinoCardSkeleton = () => (
   <Card className="card-highlight overflow-hidden animate-pulse">
@@ -85,8 +103,10 @@ const CasinosByCountry = () => {
   const [error, setError] = useState<string | null>(null); // Add error state
 
   useEffect(() => {
-    // Find country from mock data (as requested)
-    const foundCountry = countries.find(c => c.code === countryCode);
+    // Find country from mock data using case-insensitive comparison
+    const foundCountry = countries.find(c => 
+      c.code.toLowerCase() === countryCode?.toLowerCase()
+    );
     setCountry(foundCountry);
 
     if (!countryCode) {
@@ -264,48 +284,59 @@ const CasinosByCountry = () => {
               </div>
             ) : filteredCasinos.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredCasinos.map(casino => (
-                  <Link
-                    key={casino.id}
-                    to={`/casino/${casino.id}`}
-                    className={cn(
-                      "block rounded-lg border bg-card text-card-foreground shadow-sm",
-                      "card-highlight overflow-hidden hover:border-primary/50 transition-all duration-300 group",
-                      "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                    )}
-                  >
-                    <div className="h-48 bg-gray-800 relative">
-                      {/* Placeholder for casino image */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-white/50">
-                          <img 
-                            src={casino.logo} 
-                            alt={casino.name} 
-                            className="w-full h-full object-cover bg-muted"
-                          />
+                {filteredCasinos.map(casino => {
+                  // Generate slug for the link
+                  const slug = createSlug(casino.name);
+                  return (
+                    <Link
+                      key={casino.id}
+                      // Updated link format: /casino/:id/:slug
+                      to={`/casino/${casino.id}/${slug}`}
+                      className={cn(
+                        "block rounded-lg border bg-card text-card-foreground shadow-sm",
+                        "card-highlight overflow-hidden hover:border-primary/50 transition-all duration-300 group",
+                        "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      )}
+                    >
+                      <div className="h-48 bg-gray-800 relative">
+                        {/* Placeholder for casino image */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-white/50">
+                            {/* Added check for casino.logo */}
+                            {casino.logo ? (
+                               <img 
+                                src={casino.logo} 
+                                alt={casino.name} 
+                                className="w-full h-full object-cover bg-muted"
+                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                              />
+                             ) : (
+                               <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-xs">No Logo</div>
+                             )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    
-                    <div className="p-6 flex flex-col flex-grow">
-                      <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
-                        {casino.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {casino.description || 'No address available.'}
-                      </p>
-                      <div className="mt-auto pt-3 flex justify-between items-center">
-                        <span className="text-primary font-medium text-sm flex items-center">
-                          View details
-                          <svg xmlns="http://www.w3.org/2000/svg" className="ml-1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="m9 18 6-6-6-6"/>
-                          </svg>
-                        </span>
+                      
+                      <div className="p-6 flex flex-col flex-grow">
+                        <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
+                          {casino.name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {casino.description || 'No address available.'}
+                        </p>
+                        <div className="mt-auto pt-3 flex justify-between items-center">
+                          <span className="text-primary font-medium text-sm flex items-center">
+                            View details
+                            <svg xmlns="http://www.w3.org/2000/svg" className="ml-1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="m9 18 6-6-6-6"/>
+                            </svg>
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  );
+                })}
               </div>
             ) : (
               // Check for country before displaying the "No rooms found" message
