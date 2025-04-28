@@ -8,9 +8,10 @@ import { countries } from "../data/mockData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { MapPin, Phone, Globe, AlertCircle, ExternalLink, Calendar, Users, CircleDollarSign, Image as ImageIcon } from "lucide-react";
+import { MapPin, Phone, Globe, AlertCircle, ExternalLink, CalendarDays, Users, CircleDollarSign, Image as ImageIcon, Euro } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { format } from 'date-fns';
 
 // --- Updated Casino Interface ---
 interface Casino {
@@ -123,19 +124,19 @@ const getAttr = (element: Element | null, attrName: string): string | undefined 
 };
 
 // --- Helper to format date string ---
-const formatTournamentDate = (dateStr: string | undefined): string => {
-    if (!dateStr) return 'N/A';
+const formatTournamentDate = (dateStr: string | undefined): { date: string; time: string } | null => {
+    if (!dateStr) return null;
     try {
         // Assuming dateStr is like "YYYY-MM-DD HH:MM:SS"
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) return dateStr; // Return original if invalid
-        return date.toLocaleString(undefined, {
-            year: 'numeric', month: 'short', day: 'numeric',
-            hour: '2-digit', minute: '2-digit'
-        });
+        const dateObj = new Date(dateStr);
+        if (isNaN(dateObj.getTime())) return null; // Return null if invalid
+        return {
+            date: format(dateObj, 'eee, MMM d, yyyy'),
+            time: format(dateObj, 'HH:mm')
+        };
     } catch (e) {
         console.error("Error formatting date:", dateStr, e);
-        return dateStr; // Fallback to original string
+        return null; // Fallback to null
     }
 };
 
@@ -153,12 +154,14 @@ const CasinoDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [countryName, setCountryName] = useState<string | null>(null);
+  const [showAllTournaments, setShowAllTournaments] = useState(false);
 
   useEffect(() => {
     if (passedCountryCode) {
       const foundCountry = countries.find(c => c.code.toLowerCase() === passedCountryCode.toLowerCase());
-      setCountryName(foundCountry?.name || passedCountryCode);
-      console.log(`[CasinoDetail useEffect] Set countryName to "${countryName}" based on passed code "${passedCountryCode}"`);
+      const nameToSet = foundCountry?.name || passedCountryCode;
+      setCountryName(nameToSet);
+      console.log(`[CasinoDetail useEffect] Set countryName to "${nameToSet}" based on passed code "${passedCountryCode}"`);
     } else {
       console.warn("[CasinoDetail useEffect] Country code not passed via route state.");
       setCountryName("Unknown Country");
@@ -179,6 +182,7 @@ const CasinoDetail = () => {
       setLiveTournaments([]);
       setCashGames([]);
       setClubPictures([]);
+      setShowAllTournaments(false);
 
       try {
         const response = await fetch('/pokerlist-api-detail', {
@@ -344,6 +348,10 @@ const CasinoDetail = () => {
   const pageTitle = `${casino.name} | ${countryName || casino.city} | PokerList`;
   const pageDescription = `Details, tournaments, and games for ${casino.name} poker room in ${casino.city}, ${countryName || ''}. Address: ${casino.address}.`;
 
+  const displayedTournaments = showAllTournaments
+    ? liveTournaments
+    : liveTournaments.slice(0, 10);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Helmet>
@@ -469,36 +477,54 @@ const CasinoDetail = () => {
               <CardHeader>
                 <CardTitle className="text-2xl font-semibold text-foreground">Live Tournaments</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 {liveTournaments.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Tournament</TableHead>
-                          <TableHead className="text-right">Buy-in</TableHead>
-                           <TableHead className="text-right">Guarantee</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {liveTournaments.map((t) => (
-                          <TableRow key={t.id}>
-                            <TableCell className="whitespace-nowrap">{formatTournamentDate(t.startDateStr)}</TableCell>
-                            <TableCell className="font-medium">{t.title || 'N/A'}</TableCell>
-                             <TableCell className="text-right whitespace-nowrap">
-                               {t.buyin && t.buyin !== '0' ? `${t.currency || ''}${t.buyin}` : 'N/A'}
-                             </TableCell>
-                             <TableCell className="text-right whitespace-nowrap">
-                               {t.guaranteed && t.guaranteed !== '0' ? `${t.currency || ''}${t.guaranteed}` : '-'}
-                             </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                    displayedTournaments.map((tournament) => {
+                        const formattedDate = formatTournamentDate(tournament.startDateStr);
+                        return (
+                           <Card key={tournament.id} className="card-highlight p-4 sm:p-6 flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
+                             <div className="flex-grow">
+                                {formattedDate && (
+                                    <p className="text-sm text-muted-foreground mb-1 sm:mb-1.5 flex items-center">
+                                      <CalendarDays className="w-4 h-4 mr-1.5" />
+                                      {formattedDate.date} @ {formattedDate.time}
+                                   </p>
+                                )}
+                               <h3 className="text-lg sm:text-xl font-semibold">{tournament.title || 'N/A'}</h3>
+                             </div>
+                             <div className="flex-shrink-0 flex flex-row flex-wrap items-center sm:items-start gap-x-2 gap-y-1 pt-1">
+                                {tournament.buyin && tournament.buyin !== '0' && (
+                                    <span
+                                     className="text-xs font-semibold text-white px-2.5 sm:px-3 py-1 rounded-full flex items-center bg-pokerBlue"
+                                    >
+                                     Buy-in: {tournament.buyin} {tournament.currency && <Euro className="w-3 h-3 ml-1" />}
+                                    </span>
+                                )}
+                               {tournament.guaranteed && tournament.guaranteed !== '0' && (
+                                 <span
+                                   className="text-xs font-semibold text-white px-3 py-1 rounded-full flex items-center bg-pokerPurple"
+                                 >
+                                   {tournament.guaranteed} {tournament.currency && <Euro className="w-3 h-3 ml-0.5 mr-0.5" />} GTD
+                                 </span>
+                               )}
+                             </div>
+                           </Card>
+                         );
+                    })
                 ) : (
                   <p className="text-muted-foreground text-center py-4">No live tournaments listed for this casino at the moment.</p>
+                )}
+
+                {liveTournaments.length > 10 && (
+                   <div className="text-center pt-2">
+                     <Button
+                       variant="outline"
+                       onClick={() => setShowAllTournaments(!showAllTournaments)}
+                       className="text-primary hover:text-primary font-semibold focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50"
+                     >
+                       {showAllTournaments ? 'Show Less Tournaments' : `Show All ${liveTournaments.length} Tournaments`}
+                     </Button>
+                   </div>
                 )}
               </CardContent>
             </Card>
