@@ -139,7 +139,7 @@ const LiveCashGames = () => {
                   className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
                 >
                   <Card
-                    className="card-highlight p-4 flex items-start md:items-center gap-3 hover:border-primary/50 transition-all duration-300 hover:shadow-md max-w-full w-full mx-auto"
+                    className="card-highlight p-4 flex items-start md:items-center gap-3 hover:border-primary/50 transition-colors max-w-full w-full mx-auto"
                   >
                     <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-sm text-muted-foreground mt-1 md:mt-0">
                       {game.clubname.substring(0, 1) || 'P'}
