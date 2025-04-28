@@ -146,9 +146,8 @@ const countryCodeToName: Record<string, string> = {
 };
 const getFlagUrl = (code: string) => `https://flagcdn.com/${code.toLowerCase()}.svg`;
 
-// --- Helper to format currency code to symbol (copied from CashGamesPage.tsx) ---
-const formatCurrency = (currencyCode?: string) => {
-  if (!currencyCode) return '';
+// Add this function near the top of the file, with other helper functions
+const formatCurrency = (currencyCode: string) => {
   if (currencyCode === 'EUR') return '€';
   if (currencyCode === 'USD') return '$';
   return currencyCode;
@@ -533,8 +532,11 @@ const CasinoDetail = () => {
                       </TableHeader>
                       <TableBody>
                         {cashGames.map((g) => {
-                          const currencySymbol = formatCurrency(g.currency);
-                          const stakes = `${currencySymbol}${g.smallblind}/${currencySymbol}${g.bigblind}`;
+                          const currencySymbol = formatCurrency(g.currency || '');
+                          const smallBlind = g.smallblind === '?' ? '0' : g.smallblind;
+                          const bigBlind = g.bigblind === '?' ? '0' : g.bigblind;
+                          const stakes = `${currencySymbol}${smallBlind}/${currencySymbol}${bigBlind}`;
+                          
                           return (
                             <TableRow key={g.id}>
                               <TableCell className="font-medium">{g.gametype}</TableCell>
