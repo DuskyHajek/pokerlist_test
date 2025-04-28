@@ -60,9 +60,9 @@ const getAttr = (element: Element | null, attrName: string): string | undefined 
     return element?.getAttribute(attrName) ?? undefined;
 };
 
-// Function to fetch logo for a single club ID
-const fetchLogoForClub = async (clubId: string): Promise<string | undefined> => {
-    console.log(`[fetchLogoForClub] Fetching logo for club ID: ${clubId}`);
+// Function to fetch COUNTRY code for a single club ID using the detail API
+const fetchCountryForClub = async (clubId: string): Promise<{ clubId: string; countryCode: string | undefined }> => {
+    console.log(`[fetchCountryForClub] Fetching country for club ID: ${clubId}`);
     try {
         const response = await fetch('/pokerlist-api-detail', {
             method: 'POST',
@@ -70,19 +70,54 @@ const fetchLogoForClub = async (clubId: string): Promise<string | undefined> => 
             body: `id=${encodeURIComponent(clubId)}`
         });
         if (!response.ok) {
-            console.error(`[fetchLogoForClub] API error for club ${clubId}: Status ${response.status}`);
-            return undefined; // Don't throw, just return undefined
+            console.error(`[fetchCountryForClub] Detail API error for club ${clubId}: Status ${response.status}`);
+            return { clubId, countryCode: undefined };
         }
         const xmlData = await response.text();
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlData, "text/xml");
         const clubElement = xmlDoc.querySelector(`POKERLIST > POKERCLUB[ID="${clubId}"]`);
-        const logoUrl = getAttr(clubElement, 'LOGOURL');
-        console.log(`[fetchLogoForClub] Found logo for ${clubId}: ${logoUrl}`);
-        return logoUrl;
+        const countryCode = getAttr(clubElement, 'COUNTRY');
+        console.log(`[fetchCountryForClub] Found country for ${clubId}: ${countryCode}`);
+        return { clubId, countryCode };
     } catch (error) {
-        console.error(`[fetchLogoForClub] Failed to fetch/parse logo for club ${clubId}:`, error);
-        return undefined; // Return undefined on any error
+        console.error(`[fetchCountryForClub] Failed to fetch/parse country for club ${clubId}:`, error);
+        return { clubId, countryCode: undefined };
+    }
+};
+
+// Function to fetch club list (including logos) for a single COUNTRY using the list API
+const fetchLogosForCountry = async (countryCode: string): Promise<{ clubId: string; logoUrl: string | undefined }[]> => {
+    console.log(`[fetchLogosForCountry] Fetching logos for country: ${countryCode}`);
+    try {
+        const response = await fetch('/pokerlist-api', { // Use the list API proxy
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `country=${encodeURIComponent(countryCode)}`
+        });
+        if (!response.ok) {
+            console.error(`[fetchLogosForCountry] List API error for country ${countryCode}: Status ${response.status}`);
+            return [];
+        }
+        const xmlData = await response.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlData, "text/xml");
+        const clubElements = xmlDoc.querySelectorAll(`POKERLIST > POKERCLUB`); // Get all clubs in the response
+        const logos: { clubId: string; logoUrl: string | undefined }[] = [];
+        clubElements.forEach(clubElement => {
+            const clubId = getAttr(clubElement, 'ID');
+            if (clubId) {
+                logos.push({
+                    clubId: clubId,
+                    logoUrl: getAttr(clubElement, 'LOGOURL')
+                });
+            }
+        });
+        console.log(`[fetchLogosForCountry] Found ${logos.length} logos for country ${countryCode}`);
+        return logos;
+    } catch (error) {
+        console.error(`[fetchLogosForCountry] Failed to fetch/parse logos for country ${countryCode}:`, error);
+        return [];
     }
 };
 
@@ -113,25 +148,52 @@ const CashGamesPage = () => {
           setCashGames([]);
         }
 
+        // --- Step 2: Fetch Country Codes for unique clubs ---
         if (initialCashGames.length > 0) {
-            console.log("[CashGamesPage useEffect] Fetching logos...");
+            console.log("[CashGamesPage useEffect] Fetching country codes...");
             const uniqueClubIds = [...new Set(initialCashGames.map(game => game.clubid))];
             console.log("[CashGamesPage useEffect] Unique club IDs:", uniqueClubIds);
 
-            const logoPromises = uniqueClubIds.map(id => fetchLogoForClub(id));
-            const logoUrls = await Promise.all(logoPromises);
+            // Fetch countries concurrently
+            const countryPromises = uniqueClubIds.map(id => fetchCountryForClub(id));
+            const clubCountryResults = await Promise.all(countryPromises);
 
-            const clubLogoMap = new Map<string, string | undefined>();
-            uniqueClubIds.forEach((id, index) => {
-                if (logoUrls[index]) {
-                    clubLogoMap.set(id, logoUrls[index]);
+            // Create clubId -> countryCode map
+            const clubCountryMap = new Map<string, string>();
+            const uniqueCountryCodes = new Set<string>();
+            clubCountryResults.forEach(result => {
+                if (result.countryCode) {
+                    clubCountryMap.set(result.clubId, result.countryCode);
+                    uniqueCountryCodes.add(result.countryCode);
                 }
             });
-            console.log("[CashGamesPage useEffect] Logo map created:", clubLogoMap);
+            console.log("[CashGamesPage useEffect] Club -> Country map created:", clubCountryMap);
+            console.log("[CashGamesPage useEffect] Unique country codes found:", [...uniqueCountryCodes]);
 
+            if (uniqueCountryCodes.size === 0) {
+                 console.warn("[CashGamesPage useEffect] No country codes found for clubs. Cannot fetch logos.");
+                 setIsLoading(false); // Stop loading if we can't proceed
+                 return;
+            }
+
+            // --- Step 3: Fetch Logos using Country Codes ---
+            console.log("[CashGamesPage useEffect] Fetching logos by country...");
+            const logoListPromises = [...uniqueCountryCodes].map(code => fetchLogosForCountry(code));
+            const countryLogoLists = await Promise.all(logoListPromises);
+
+            // Flatten results and create clubId -> logoUrl map
+            const clubLogoMap = new Map<string, string | undefined>();
+            countryLogoLists.flat().forEach(logoInfo => {
+                if (logoInfo.logoUrl) { // Only add if logo exists
+                    clubLogoMap.set(logoInfo.clubId, logoInfo.logoUrl);
+                }
+            });
+            console.log("[CashGamesPage useEffect] Final Logo map created:", clubLogoMap);
+
+            // --- Step 4: Update cash games state with logos ---
             const gamesWithLogos = initialCashGames.map(game => ({
                 ...game,
-                logoUrl: clubLogoMap.get(game.clubid)
+                logoUrl: clubLogoMap.get(game.clubid) // Add logoUrl from final map
             }));
             setCashGames(gamesWithLogos);
             console.log("[CashGamesPage useEffect] Updated cash games with logos.");
