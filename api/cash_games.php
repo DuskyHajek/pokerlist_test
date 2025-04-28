@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 
 // External data source for Cash Games
-$url = 'https://www.pokerlist.com/pl/cashgames_export.php?cid=pokerlist-web&sci=yes';
+$url = 'https://www.pokerlist.com/pl/cashgames_export.php?cid=pokerlist-web2';
 
 // Determine cache file path based on environment
 $isVercel = getenv('VERCEL') !== false && getenv('VERCEL') !== '';
