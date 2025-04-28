@@ -535,7 +535,7 @@ const CasinoDetail = () => {
                   <div className="space-y-3 md:space-y-4">
                     {cashGames.map((g) => {
                       const currencySymbol = formatCurrency(g.currency || '');
-                      const stakes = `${currencySymbol}${g.smallblind}/${currencySymbol}${g.bigblind}`;
+                      const stakes = `${g.smallblind}/${g.bigblind} ${currencySymbol}`;
                       const updatedTime = g.updated 
                           ? new Date(g.updated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
                           : null; 

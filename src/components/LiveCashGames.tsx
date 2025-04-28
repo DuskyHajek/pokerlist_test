@@ -129,7 +129,7 @@ const LiveCashGames = () => {
           ) : (
             cashGames.map((game) => {
               const currencySymbol = formatCurrency(game.currency);
-              const stakes = `${currencySymbol}${game.smallblind}/${currencySymbol}${game.bigblind}`;
+              const stakes = `${game.smallblind}/${game.bigblind} ${currencySymbol}`;
               const slug = createSlug(game.clubname);
 
               return (
