@@ -127,11 +127,13 @@ const CashGamesPage = () => {
                   const currencySymbol = formatCurrency(game.currency);
                   const stakes = `${game.smallblind}/${game.bigblind} ${currencySymbol}`;
                   const slug = createSlug(game.clubname);
+                  const clubInitial = game.clubname?.substring(0, 1).toUpperCase() || '?';
 
                   return (
                     <Link 
                       key={game.id} 
-                      to={`/casino/${game.clubid}/${slug}`} 
+                      to={`/casino/${game.clubid}/${slug}`}
+                      state={{ countryCode: null, clubInitial: clubInitial }}
                       className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
                     >
                       <Card

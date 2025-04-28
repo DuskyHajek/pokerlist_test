@@ -159,8 +159,9 @@ const CasinoDetail = () => {
   const location = useLocation();
   const passedCountryCode = location.state?.countryCode as string | undefined;
   const passedLogoUrl = location.state?.logoUrl as string | undefined;
+  const passedInitial = location.state?.clubInitial as string | undefined;
 
-  console.log(`[CasinoDetail Render] id: ${id}, passedCountryCode: ${passedCountryCode}, passedLogoUrl: ${passedLogoUrl}`);
+  console.log(`[CasinoDetail Render] id: ${id}, passedCountryCode: ${passedCountryCode}, passedLogoUrl: ${passedLogoUrl}, passedInitial: ${passedInitial}`);
 
   const [casino, setCasino] = useState<Casino | null>(null);
   const [liveTournaments, setLiveTournaments] = useState<LiveTournament[]>([]);
@@ -401,6 +402,9 @@ const CasinoDetail = () => {
     ? liveTournaments
     : liveTournaments.slice(0, 10);
 
+  // Use the actual logo from the fetched casino data if available, otherwise use the passed logo
+  const displayLogoUrl = casino?.logo || passedLogoUrl;
+
   return (
     <div className="min-h-screen flex flex-col">
       <Helmet>
@@ -418,17 +422,26 @@ const CasinoDetail = () => {
         >
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
              <div className="container mx-auto px-4 flex flex-col md:flex-row items-center gap-6 md:gap-8 relative z-10">
-               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white/50 bg-muted flex-shrink-0 flex items-center justify-center shadow-lg">
-                 {casino.logo ? (
+               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white/50 bg-muted flex-shrink-0 flex items-center justify-center shadow-lg text-4xl font-semibold text-muted-foreground">
+                 {/* Display logo if available, otherwise display passed initial */}
+                 {displayLogoUrl ? (
                     <img
-                     src={casino.logo}
+                     src={displayLogoUrl}
                      alt={`${casino.name} Logo`}
                      className="w-full h-full object-cover"
                      onError={(e) => {
-                         e.currentTarget.style.display = 'none';
+                       // Optionally hide img on error, or show initial again
+                       e.currentTarget.style.display = 'none'; 
+                       const parent = e.currentTarget.parentElement;
+                       if(parent && !parent.textContent) { // Avoid adding text if already there
+                         parent.textContent = passedInitial || casino.name?.substring(0, 1) || '?';
+                       }
                      }}
                    />
-                 ) : null}
+                 ) : (
+                   // Display the initial passed from the previous page, or fallback to casino name initial
+                   <span>{passedInitial || casino.name?.substring(0, 1) || '?'}</span>
+                 )}
                </div>
                <div className="text-center md:text-left">
                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 drop-shadow-md">
