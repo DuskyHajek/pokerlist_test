@@ -7,7 +7,7 @@ import Footer from "../components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { MapPin, Phone, Globe, AlertCircle, ExternalLink, CalendarDays, Users, CircleDollarSign, Image as ImageIcon, Euro, Info } from "lucide-react";
+import { MapPin, Phone, Globe, AlertCircle, ExternalLink, CalendarDays, Users, CircleDollarSign, Image as ImageIcon, Euro, Info, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from 'date-fns';
@@ -226,31 +226,72 @@ const CasinoDetail = () => {
           throw new Error(`Casino with ID ${id} not found in API response.`);
         }
 
-        // Clean the description: Remove duplicate info lines
+        // Extract main details first
+        const address = getAttr(clubElement, 'ADDRESS') || '';
+        const city = getAttr(clubElement, 'CITY') || '';
+        const contact = getAttr(clubElement, 'CONTACT');
+        const url = getAttr(clubElement, 'URL');
+        const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+
+        // Clean the description: Remove duplicate info lines based on extracted details (more robust)
         let rawDescription = getAttr(clubElement, 'DESCRIPTION')?.replace(/&#10;/g, '\n') || '';
         const descriptionLines = rawDescription.split('\n');
+        
+        // Prepare values for robust, case-insensitive checking
+        const checkAddress = address.trim().toLowerCase();
+        // Extract numeric part of contact if it looks like a phone number
+        const contactDigits = contact?.replace(/\D/g, ''); 
+        const checkContact = contact?.trim().toLowerCase();
+        const checkUrl = url?.trim().toLowerCase();
+        // Extract domain from URL for broader matching
+        let domain = '';
+        try {
+            if (url) {
+                domain = new URL(url.startsWith('http') ? url : `http://${url}`).hostname.replace(/^www\./, '');
+            }
+        } catch (e) { /* Ignore invalid URL parsing */ }
+
         const cleanedDescriptionLines = descriptionLines.filter(line => {
-            const trimmedLine = line.trim().toLowerCase();
-            return !(trimmedLine.startsWith('address:') ||
-                     trimmedLine.startsWith('phone:') ||
-                     trimmedLine.startsWith('e-mail:') ||
-                     trimmedLine.startsWith('web page:'));
+            const trimmedLine = line.trim();
+            const lowerTrimmedLine = trimmedLine.toLowerCase();
+            
+            if (!trimmedLine) return false; // Remove empty lines
+            
+            // Check against address (case-insensitive)
+            if (checkAddress && lowerTrimmedLine === checkAddress) return false; 
+            
+            // Check against contact/phone (case-insensitive or digits)
+            if (checkContact && lowerTrimmedLine === checkContact) return false;
+            if (contactDigits && trimmedLine.replace(/\D/g, '') === contactDigits) return false;
+
+            // Check against URL (case-insensitive)
+            if (checkUrl && lowerTrimmedLine === checkUrl) return false;
+
+            // Check for email patterns / domains
+            if (emailRegex.test(trimmedLine)) return false; // Remove any line that looks like an email
+            if (domain && lowerTrimmedLine.includes(domain)) return false; // Remove lines containing the website domain
+            
+            // Specific known extra patterns (add more if needed)
+            if (lowerTrimmedLine.startsWith('e-mail:')) return false;
+            if (lowerTrimmedLine.startsWith('web page:')) return false;
+
+            return true; // Keep the line if none of the above conditions met
         });
         const cleanedDescription = cleanedDescriptionLines.join('\n').trim();
 
         const casinoDetails: Casino = {
             id: getAttr(clubElement, 'ID')!,
             name: getAttr(clubElement, 'TITLE') || 'N/A',
-            address: getAttr(clubElement, 'ADDRESS') || '',
-            city: getAttr(clubElement, 'CITY') || '',
+            address: address, // Use extracted address
+            city: city, // Use extracted city
             latitude: getAttr(clubElement, 'LATITUDE'),
             longitude: getAttr(clubElement, 'LONGITUDE'),
-            contact: getAttr(clubElement, 'CONTACT'),
-            url: getAttr(clubElement, 'URL'),
+            contact: contact, // Use extracted contact
+            url: url, // Use extracted url
             logo: getAttr(clubElement, 'LOGOURL'),
             size: getAttr(clubElement, 'SIZE'),
             rank: getAttr(clubElement, 'RANK'),
-            description: cleanedDescription,
+            description: cleanedDescription, // Use the cleaned description
             imgUrl: getAttr(clubElement, 'IMGURL'),
         };
         console.log("[CasinoDetail state] Setting casino state to:", casinoDetails);
@@ -386,17 +427,36 @@ const CasinoDetail = () => {
         >
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
              <div className="container mx-auto px-4 flex flex-col md:flex-row items-center gap-6 md:gap-8 relative z-10">
-               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white/50 bg-muted flex-shrink-0 flex items-center justify-center shadow-lg">
-                 {casino.logo ? (
+               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white/50 bg-muted flex-shrink-0 flex items-center justify-center shadow-lg text-muted-foreground">
+                 {(casino.logo || casino.imgUrl) ? (
                     <img
-                     src={casino.logo}
+                     // Prioritize logo, fallback to imgUrl
+                     src={casino.logo || casino.imgUrl} 
                      alt={`${casino.name} Logo`}
-                     className="w-full h-full object-cover"
+                     className="w-full h-full object-cover logo-image" // Added class for potential targeting
                      onError={(e) => {
-                         e.currentTarget.style.display = 'none';
+                         const target = e.currentTarget as HTMLImageElement;
+                         // If the primary src (casino.logo) failed AND we haven't already tried imgUrl...
+                         if (target.src === casino.logo && casino.imgUrl) {
+                            // Try falling back to imgUrl
+                            target.src = casino.imgUrl;
+                         } else {
+                            // If fallback also failed or wasn't available, hide img and show placeholder
+                            target.style.display = 'none';
+                            const placeholder = target.parentElement?.querySelector('.logo-placeholder');
+                            placeholder?.classList.remove('hidden');
+                         }
                      }}
                    />
                  ) : null}
+                 {/* Placeholder Icon - Initially hidden if logo/imgUrl exists */}
+                  <Building2 
+                    className={cn(
+                        "w-1/2 h-1/2 logo-placeholder",
+                        (casino.logo || casino.imgUrl) ? "hidden" : ""
+                    )} 
+                    aria-label="Casino logo placeholder" 
+                  />
                </div>
                <div className="text-center md:text-left">
                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 drop-shadow-md">
