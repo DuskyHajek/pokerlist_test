@@ -2,12 +2,33 @@ import React, { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { countries } from "../data/mockData";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Search } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+
+const countries = [
+  { code: "AT", name: "Austria", flag: "https://flagcdn.com/at.svg" },
+  { code: "BE", name: "Belgium", flag: "https://flagcdn.com/be.svg" },
+  { code: "BR", name: "Brazil", flag: "https://flagcdn.com/br.svg" },
+  { code: "BG", name: "Bulgaria", flag: "https://flagcdn.com/bg.svg" },
+  { code: "HR", name: "Croatia", flag: "https://flagcdn.com/hr.svg" },
+  { code: "CZ", name: "Czech Republic", flag: "https://flagcdn.com/cz.svg" },
+  { code: "FR", name: "France", flag: "https://flagcdn.com/fr.svg" },
+  { code: "DE", name: "Germany", flag: "https://flagcdn.com/de.svg" },
+  { code: "GB", name: "Great Britain", flag: "https://flagcdn.com/gb.svg" },
+  { code: "GR", name: "Greece", flag: "https://flagcdn.com/gr.svg" },
+  { code: "HU", name: "Hungary", flag: "https://flagcdn.com/hu.svg" },
+  { code: "IT", name: "Italy", flag: "https://flagcdn.com/it.svg" },
+  { code: "MT", name: "Malta", flag: "https://flagcdn.com/mt.svg" },
+  { code: "NL", name: "Netherlands", flag: "https://flagcdn.com/nl.svg" },
+  { code: "PL", name: "Poland", flag: "https://flagcdn.com/pl.svg" },
+  { code: "PT", name: "Portugal", flag: "https://flagcdn.com/pt.svg" },
+  { code: "SK", name: "Slovakia", flag: "https://flagcdn.com/sk.svg" },
+  { code: "ES", name: "Spain", flag: "https://flagcdn.com/es.svg" },
+  { code: "CH", name: "Switzerland", flag: "https://flagcdn.com/ch.svg" },
+];
 
 const Casinos = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,7 +44,6 @@ const Casinos = () => {
         <meta name="description" content="Browse poker rooms and casinos by country. Find the best venues for poker tournaments and cash games near you." />
       </Helmet>
       <Navbar />
-      
       <main className="flex-grow pt-16">
         <div className="hero-gradient-casinos py-16 md:py-24 text-center h-[360px] md:h-[280px]">
           <div className="container mx-auto px-4 flex flex-col items-center justify-center h-full">
@@ -35,7 +55,6 @@ const Casinos = () => {
             </p>
           </div>
         </div>
-
         <section className="py-16 md:py-24 bg-background">
           <div className="container mx-auto px-4">
             <div className="mb-12 max-w-xl mx-auto relative">
@@ -48,7 +67,6 @@ const Casinos = () => {
               />
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
             </div>
-            
             {filteredCountries.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 max-w-6xl mx-auto">
                 {filteredCountries.map((country, index) => (
@@ -85,7 +103,6 @@ const Casinos = () => {
           </div>
         </section>
       </main>
-      
       <Footer />
     </div>
   );

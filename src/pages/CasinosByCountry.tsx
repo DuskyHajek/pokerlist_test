@@ -4,7 +4,6 @@ import { Helmet } from "react-helmet-async";
 import { Skeleton } from "@/components/ui/skeleton";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { countries } from "../data/mockData";
 import { MapPin } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -94,62 +93,87 @@ const CasinoCardSkeleton = () => (
   </Card>
 );
 
+// Replace dynamic country code-to-name mapping with the static list
+const countries = [
+  { code: "AT", name: "Austria", flag: "https://flagcdn.com/at.svg" },
+  { code: "BE", name: "Belgium", flag: "https://flagcdn.com/be.svg" },
+  { code: "BR", name: "Brazil", flag: "https://flagcdn.com/br.svg" },
+  { code: "BG", name: "Bulgaria", flag: "https://flagcdn.com/bg.svg" },
+  { code: "HR", name: "Croatia", flag: "https://flagcdn.com/hr.svg" },
+  { code: "CZ", name: "Czech Republic", flag: "https://flagcdn.com/cz.svg" },
+  { code: "FR", name: "France", flag: "https://flagcdn.com/fr.svg" },
+  { code: "DE", name: "Germany", flag: "https://flagcdn.com/de.svg" },
+  { code: "GB", name: "Great Britain", flag: "https://flagcdn.com/gb.svg" },
+  { code: "GR", name: "Greece", flag: "https://flagcdn.com/gr.svg" },
+  { code: "HU", name: "Hungary", flag: "https://flagcdn.com/hu.svg" },
+  { code: "IT", name: "Italy", flag: "https://flagcdn.com/it.svg" },
+  { code: "MT", name: "Malta", flag: "https://flagcdn.com/mt.svg" },
+  { code: "NL", name: "Netherlands", flag: "https://flagcdn.com/nl.svg" },
+  { code: "PL", name: "Poland", flag: "https://flagcdn.com/pl.svg" },
+  { code: "PT", name: "Portugal", flag: "https://flagcdn.com/pt.svg" },
+  { code: "SK", name: "Slovakia", flag: "https://flagcdn.com/sk.svg" },
+  { code: "ES", name: "Spain", flag: "https://flagcdn.com/es.svg" },
+  { code: "CH", name: "Switzerland", flag: "https://flagcdn.com/ch.svg" },
+];
+
 const CasinosByCountry = () => {
   const { countryCode } = useParams<{ countryCode: string }>();
   const [isLoading, setIsLoading] = useState(true);
-  // Use the new Casino interface for state typing
   const [filteredCasinos, setFilteredCasinos] = useState<Casino[]>([]);
-  const [country, setCountry] = useState<(typeof countries)[0] | undefined>(undefined);
-  const [error, setError] = useState<string | null>(null); // Add error state
+  const [country, setCountry] = useState<{ code: string; name: string; flag: string } | undefined>(undefined);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Find country from mock data using case-insensitive comparison
-    const foundCountry = countries.find(c => 
-      c.code.toLowerCase() === countryCode?.toLowerCase()
-    );
-    setCountry(foundCountry);
-
     if (!countryCode) {
       setError("Country code is missing.");
       setIsLoading(false);
       return;
     }
-
-    // Fetch data from the API
+    // Find country from static list
+    const foundCountry = countries.find(c => c.code.toUpperCase() === countryCode.toUpperCase());
+    setCountry(foundCountry);
+    // Fetch clubs for the selected country
     const fetchCasinos = async () => {
       setIsLoading(true);
-      setError(null); // Reset error on new fetch
+      setError(null);
       try {
-        // Use the Vite proxy path instead of the direct URL
         const response = await fetch('/pokerlist-api', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: `country=${encodeURIComponent(countryCode)}` // Encode country code
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `country=${encodeURIComponent(countryCode)}`
         });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const xml = await response.text();
+        // Parse all clubs (including border clubs)
+        const clubRegex = /<POKERCLUB\s+([^>]+)\/>/g;
+        const attrRegex = /(\w+)="([^"]*)"/g;
+        let match;
+        const clubs: Casino[] = [];
+        while ((match = clubRegex.exec(xml)) !== null) {
+          let attrMatch;
+          let club: any = {};
+          while ((attrMatch = attrRegex.exec(match[1])) !== null) {
+            club[attrMatch[1]] = attrMatch[2];
+          }
+          // Show all clubs returned by the API (including border clubs)
+          clubs.push({
+            id: club['ID'],
+            name: club['TITLE'] || 'N/A',
+            countryCode: club['COUNTRY'],
+            description: `${club['ADDRESS'] || ''}, ${club['CITY'] || ''}`.replace(/^, |, $/g, ''),
+            logo: club['LOGOURL'] || undefined,
+          });
         }
-
-        const xmlData = await response.text();
-        const parsedCasinos = parsePokerClubsXml(xmlData);
-        setFilteredCasinos(parsedCasinos);
-
+        setFilteredCasinos(clubs);
       } catch (err) {
-        console.error("Failed to fetch or parse casinos:", err);
-        setError(err instanceof Error ? err.message : "An unknown error occurred");
-        setFilteredCasinos([]); // Clear casinos on error
+        setError(err instanceof Error ? err.message : 'Unknown error');
+        setFilteredCasinos([]);
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchCasinos();
-
-    // No cleanup needed for fetch like with setTimeout timer
-  }, [countryCode]); // Re-run effect if countryCode changes
+  }, [countryCode]);
 
   // Show loading skeleton for header too if country hasn't loaded
   if (isLoading && !country) {

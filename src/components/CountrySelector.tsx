@@ -1,9 +1,30 @@
 import React from "react";
-import { countries } from "../data/mockData";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ChevronRight } from "lucide-react";
+
+const countries = [
+  { code: "AT", name: "Austria", flag: "https://flagcdn.com/at.svg" },
+  { code: "BE", name: "Belgium", flag: "https://flagcdn.com/be.svg" },
+  { code: "BR", name: "Brazil", flag: "https://flagcdn.com/br.svg" },
+  { code: "BG", name: "Bulgaria", flag: "https://flagcdn.com/bg.svg" },
+  { code: "HR", name: "Croatia", flag: "https://flagcdn.com/hr.svg" },
+  { code: "CZ", name: "Czech Republic", flag: "https://flagcdn.com/cz.svg" },
+  { code: "FR", name: "France", flag: "https://flagcdn.com/fr.svg" },
+  { code: "DE", name: "Germany", flag: "https://flagcdn.com/de.svg" },
+  { code: "GB", name: "Great Britain", flag: "https://flagcdn.com/gb.svg" },
+  { code: "GR", name: "Greece", flag: "https://flagcdn.com/gr.svg" },
+  { code: "HU", name: "Hungary", flag: "https://flagcdn.com/hu.svg" },
+  { code: "IT", name: "Italy", flag: "https://flagcdn.com/it.svg" },
+  { code: "MT", name: "Malta", flag: "https://flagcdn.com/mt.svg" },
+  { code: "NL", name: "Netherlands", flag: "https://flagcdn.com/nl.svg" },
+  { code: "PL", name: "Poland", flag: "https://flagcdn.com/pl.svg" },
+  { code: "PT", name: "Portugal", flag: "https://flagcdn.com/pt.svg" },
+  { code: "SK", name: "Slovakia", flag: "https://flagcdn.com/sk.svg" },
+  { code: "ES", name: "Spain", flag: "https://flagcdn.com/es.svg" },
+  { code: "CH", name: "Switzerland", flag: "https://flagcdn.com/ch.svg" },
+];
 
 const CountrySelector = () => {
   return (
@@ -13,7 +34,6 @@ const CountrySelector = () => {
         <p className="text-muted-foreground text-center max-w-2xl mx-auto mb-10">
           Explore poker rooms and casinos in different countries. Click on a country to see all venues.
         </p>
-        
         <div className="flex flex-wrap justify-center gap-4 md:gap-6">
           {countries.map((country) => (
             <Link
@@ -32,7 +52,6 @@ const CountrySelector = () => {
             </Link>
           ))}
         </div>
-
         <div className="mt-12 text-center">
           <Link 
             to="/casinos" 

@@ -4,7 +4,6 @@ import { Helmet } from "react-helmet-async";
 import { Skeleton } from "@/components/ui/skeleton";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { countries } from "../data/mockData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -140,6 +139,12 @@ const formatTournamentDate = (dateStr: string | undefined): { date: string; time
     }
 };
 
+// Add country code to name mapping and flag util
+const countryCodeToName: Record<string, string> = {
+  SK: "Slovakia", CZ: "Czech Republic", MT: "Malta", AT: "Austria", HU: "Hungary", PL: "Poland", DE: "Germany", CH: "Switzerland", GB: "United Kingdom", IE: "Ireland", DK: "Denmark", FR: "France", BE: "Belgium", SI: "Slovenia", IT: "Italy", ES: "Spain", PT: "Portugal", NL: "Netherlands",
+};
+const getFlagUrl = (code: string) => `https://flagcdn.com/${code.toLowerCase()}.svg`;
+
 const CasinoDetail = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
@@ -158,12 +163,11 @@ const CasinoDetail = () => {
 
   useEffect(() => {
     if (passedCountryCode) {
-      const foundCountry = countries.find(c => c.code.toLowerCase() === passedCountryCode.toLowerCase());
-      const nameToSet = foundCountry?.name || passedCountryCode;
+      const code = passedCountryCode.toUpperCase();
+      const nameToSet = countryCodeToName[code] || code;
       setCountryName(nameToSet);
-      console.log(`[CasinoDetail useEffect] Set countryName to "${nameToSet}" based on passed code "${passedCountryCode}"`);
+      // Optionally, you can set a countryFlag state if you want to display the flag
     } else {
-      console.warn("[CasinoDetail useEffect] Country code not passed via route state.");
       setCountryName("Unknown Country");
     }
 
