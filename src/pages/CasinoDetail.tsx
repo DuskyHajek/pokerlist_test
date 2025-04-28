@@ -227,15 +227,22 @@ const CasinoDetail = () => {
           throw new Error(`Casino with ID ${id} not found in API response.`);
         }
 
-        // Clean the description: Remove duplicate info lines
+        // Clean the description: Keep only text before the first "Address:" line
         let rawDescription = getAttr(clubElement, 'DESCRIPTION')?.replace(/&#10;/g, '\n') || '';
-        const descriptionLines = rawDescription.split('\n');
-        // Use a more robust regex to filter out redundant info lines
-        const redundantInfoRegex = /^(address|phone|e-mail|web page)\s*:/i;
-        const cleanedDescriptionLines = descriptionLines.filter(line => {
-            return !redundantInfoRegex.test(line.trim());
-        });
-        const cleanedDescription = cleanedDescriptionLines.join('\n').trim();
+        // Use regex to find the start of the line containing "Address:", case insensitive, multiline
+        const addressLineStartIndex = rawDescription.search(/^Address:/im);
+
+        let cleanedDescription = rawDescription; // Default to the full raw description
+
+        if (addressLineStartIndex !== -1) {
+            // Find the beginning of that line (index of the preceding newline, or 0 if it's the first line)
+            const precedingNewlineIndex = rawDescription.lastIndexOf('\n', addressLineStartIndex -1);
+            const actualStartIndex = (precedingNewlineIndex === -1) ? 0 : precedingNewlineIndex;
+
+            // Take the substring from the start up to the beginning of the line with "Address:"
+            cleanedDescription = rawDescription.substring(0, actualStartIndex).trim();
+        }
+        // If Address: is not found, cleanedDescription remains as rawDescription
 
         const casinoDetails: Casino = {
             id: getAttr(clubElement, 'ID')!,
