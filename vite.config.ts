@@ -15,6 +15,13 @@ export default defineConfig(({ mode }) => ({
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/Pokerlist/api') // Corrected: Rewrite /api to /Pokerlist/api
+      },
+      // New proxy rule for the external poker API
+      '/pokerlist-api': {
+        target: 'https://pokerlist.com',
+        changeOrigin: true, // Necessary for virtual hosted sites
+        secure: true,      // Keep true unless you encounter SSL certificate issues
+        rewrite: (path) => path.replace(/^\/pokerlist-api/, '/pl/pokerclubs.php'), // Rewrite to the specific endpoint
       }
     }
   },
