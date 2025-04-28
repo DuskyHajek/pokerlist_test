@@ -524,13 +524,20 @@ const CasinoDetail = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {cashGames.map((g) => (
-                          <TableRow key={g.id}>
-                            <TableCell className="font-medium">{g.gametype}</TableCell>
-                            <TableCell>{`${g.currency || ''}${g.smallblind}/${g.currency || ''}${g.bigblind}`}</TableCell>
-                            <TableCell>{g.players || 'N/A'}</TableCell>
-                          </TableRow>
-                        ))}
+                        {cashGames.map((g) => {
+                          // Determine stakes display string
+                          const stakes = (g.smallblind === '?' || g.bigblind === '?')
+                            ? 'N/A' // Show N/A if blinds are missing
+                            : `${g.currency || ''}${g.smallblind}/${g.currency || ''}${g.bigblind}`;
+
+                          return (
+                            <TableRow key={g.id}>
+                              <TableCell className="font-medium">{g.gametype}</TableCell>
+                              <TableCell>{stakes}</TableCell> {/* Use the calculated stakes */}
+                              <TableCell>{g.players || 'N/A'}</TableCell>
+                            </TableRow>
+                          );
+                        })}
                       </TableBody>
                     </Table>
                   </div>
