@@ -54,6 +54,7 @@ interface CashGame {
   currency?: string;
   updated?: string;
   minbuyin?: string;
+  clubid: string;
 }
 
 // --- Interface for Club Pictures ---
@@ -187,18 +188,20 @@ const CasinoDetail = () => {
       return;
     }
 
-    const fetchCasinoDetails = async () => {
-      console.log(`[CasinoDetail fetch] Fetching details for id: ${id}`);
+    const fetchCasinoData = async () => {
+      console.log(`[CasinoDetail fetch] Fetching data for id: ${id}`);
       setIsLoading(true);
       setError(null);
+      // Reset states
       setCasino(null);
       setLiveTournaments([]);
-      setCashGames([]);
+      setCashGames([]); // Reset cash games state
       setClubPictures([]);
       setShowAllTournaments(false);
 
       try {
-        const response = await fetch('/pokerlist-api-detail', {
+        // --- Fetch 1: Casino Details (XML) ---
+        const casinoDetailResponse = await fetch('/pokerlist-api-detail', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -206,15 +209,13 @@ const CasinoDetail = () => {
           body: `id=${encodeURIComponent(id)}`
         });
 
-        if (!response.ok) {
-          const errorText = await response.text().catch(() => 'Could not read error response.');
-          console.error(`[CasinoDetail fetch] API Error Response (status ${response.status}):`, errorText);
-          throw new Error(`API error! status: ${response.status}, ${errorText}`);
+        if (!casinoDetailResponse.ok) {
+          const errorText = await casinoDetailResponse.text().catch(() => 'Could not read casino detail error response.');
+          console.error(`[CasinoDetail fetch] Casino Detail API Error (status ${casinoDetailResponse.status}):`, errorText);
+          throw new Error(`Casino Detail API error! status: ${casinoDetailResponse.status}`); // Simplified error message
         }
 
-        const xmlData = await response.text();
-        console.log("[CasinoDetail fetch] Received XML Data:", xmlData);
-
+        const xmlData = await casinoDetailResponse.text();
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlData, "text/xml");
         const parseError = xmlDoc.querySelector("parsererror");
@@ -227,30 +228,21 @@ const CasinoDetail = () => {
         if (!pokerlistElement) {
             throw new Error("Invalid XML structure: <POKERLIST> tag not found.");
         }
-
-        const clubElement = pokerlistElement.querySelector("POKERCLUB");
-        if (!clubElement || getAttr(clubElement, 'ID') !== id) {
+        const clubElement = pokerlistElement.querySelector(`POKERCLUB[ID="${id}"]`); // More specific selector
+        if (!clubElement) {
           console.error(`[CasinoDetail parse] Casino with ID ${id} not found in the API response XML.`);
           throw new Error(`Casino with ID ${id} not found in API response.`);
         }
 
-        // Clean the description: Keep only text before the first "Address:" line
+        // Parse Casino Details from XML
         let rawDescription = getAttr(clubElement, 'DESCRIPTION')?.replace(/&#10;/g, '\n') || '';
-        // Use regex to find the start of the line containing "Address:", case insensitive, multiline
         const addressLineStartIndex = rawDescription.search(/^Address:/im);
-
-        let cleanedDescription = rawDescription; // Default to the full raw description
-
+        let cleanedDescription = rawDescription;
         if (addressLineStartIndex !== -1) {
-            // Find the beginning of that line (index of the preceding newline, or 0 if it's the first line)
             const precedingNewlineIndex = rawDescription.lastIndexOf('\n', addressLineStartIndex -1);
             const actualStartIndex = (precedingNewlineIndex === -1) ? 0 : precedingNewlineIndex;
-
-            // Take the substring from the start up to the beginning of the line with "Address:"
             cleanedDescription = rawDescription.substring(0, actualStartIndex).trim();
         }
-        // If Address: is not found, cleanedDescription remains as rawDescription
-
         const casinoDetails: Casino = {
             id: getAttr(clubElement, 'ID')!,
             name: getAttr(clubElement, 'TITLE') || 'N/A',
@@ -260,23 +252,21 @@ const CasinoDetail = () => {
             longitude: getAttr(clubElement, 'LONGITUDE'),
             contact: getAttr(clubElement, 'CONTACT'),
             url: getAttr(clubElement, 'URL'),
-            logo: getAttr(clubElement, 'LOGOURL'),
+            logo: getAttr(clubElement, 'LOGOURL'), // Keep this
             size: getAttr(clubElement, 'SIZE'),
             rank: getAttr(clubElement, 'RANK'),
             description: cleanedDescription,
             imgUrl: getAttr(clubElement, 'IMGURL'),
         };
-
-        // --- Prioritize passed logo ---
         const finalCasinoDetails: Casino = {
           ...casinoDetails,
-          // If a logoUrl was passed via state, use it. Otherwise, use the one from the detail API.
-          logo: passedLogoUrl || casinoDetails.logo,
+          logo: passedLogoUrl || casinoDetails.logo, // Prioritize passed logo
         };
-
-        console.log("[CasinoDetail state] Setting final casino state to:", finalCasinoDetails);
+        console.log("[CasinoDetail state] Setting final casino state:", finalCasinoDetails);
         setCasino(finalCasinoDetails);
 
+
+        // Parse Live Tournaments from XML
         const tournamentElements = pokerlistElement.querySelectorAll("LIVETOURNAMENTS LIVEPOKER");
         const tournaments: LiveTournament[] = Array.from(tournamentElements).map(el => ({
             id: getAttr(el, 'ID')!,
@@ -291,20 +281,7 @@ const CasinoDetail = () => {
         console.log("[CasinoDetail state] Setting liveTournaments state:", tournaments);
         setLiveTournaments(tournaments);
 
-        const cashGameElements = pokerlistElement.querySelectorAll("CASHGAMES CASHGAME");
-        const games: CashGame[] = Array.from(cashGameElements).map(el => ({
-            id: getAttr(el, 'ID')!,
-            smallblind: getAttr(el, 'SMALLBLIND') || '?',
-            bigblind: getAttr(el, 'BIGBLIND') || '?',
-            gametype: getAttr(el, 'GAMETYPE') || 'N/A',
-            players: getAttr(el, 'PLAYERS'),
-            currency: getAttr(el, 'CURRENCY'),
-            updated: getAttr(el, 'UPDATED'),
-            minbuyin: getAttr(el, 'MINBUYIN'),
-        }));
-        console.log("[CasinoDetail state] Setting cashGames state:", games);
-        setCashGames(games);
-
+        // Parse Club Pictures from XML
         const pictureElements = pokerlistElement.querySelectorAll("CLUBPICTURES PICTURE");
         const pictures: ClubPicture[] = Array.from(pictureElements).map(el => ({
             href: getAttr(el, 'href') || '',
@@ -312,18 +289,52 @@ const CasinoDetail = () => {
         console.log("[CasinoDetail state] Setting clubPictures state:", pictures);
         setClubPictures(pictures);
 
+        // --- Fetch 2: Live Cash Games (JSON) ---
+        console.log(`[CasinoDetail fetch] Fetching live cash games from /api/cash_games.php for club ID: ${id}`);
+        try {
+            const cashGameResponse = await fetch('/api/cash_games.php');
+            if (!cashGameResponse.ok) {
+                // Log error but don't throw, allow casino details to still render
+                console.error(`[CasinoDetail fetch] Cash Game API Error (status ${cashGameResponse.status}): Could not fetch live cash games.`);
+                // Set cash games to empty array or handle error state appropriately
+                setCashGames([]);
+            } else {
+                const allCashGames: CashGame[] = await cashGameResponse.json();
+                if (Array.isArray(allCashGames)) {
+                    // Filter games for the current casino ID
+                    const filteredGames = allCashGames.filter(game => game.clubid === id);
+                    console.log(`[CasinoDetail state] Setting cashGames state (filtered from JSON):`, filteredGames);
+                    setCashGames(filteredGames);
+                } else {
+                    console.warn("[CasinoDetail fetch] Received cash game data is not an array:", allCashGames);
+                    setCashGames([]);
+                }
+            }
+        } catch (cashGameError) {
+             console.error("[CasinoDetail fetch] Failed to fetch or process live cash games:", cashGameError);
+             // Decide how to handle this - maybe show a specific error message for cash games?
+             // For now, just setting to empty and logging. The main casino details might still be valid.
+             setCashGames([]);
+        }
+
       } catch (err) {
+        // This catches errors from the main XML fetch/parse
         console.error("[CasinoDetail fetch/parse Error] Failed to fetch or parse casino details:", err);
-        setError(err instanceof Error ? err.message : "An unknown error occurred");
+        setError(err instanceof Error ? err.message : "An unknown error occurred fetching casino details");
+        // Ensure other states are clear if the main fetch fails
+         setCasino(null);
+         setLiveTournaments([]);
+         setCashGames([]);
+         setClubPictures([]);
       } finally {
-        console.log(`[CasinoDetail fetch] Finished fetching for id: ${id}`);
+        console.log(`[CasinoDetail fetch] Finished fetching data for id: ${id}`);
         setIsLoading(false);
       }
     };
 
-    fetchCasinoDetails();
+    fetchCasinoData();
 
-  }, [id, passedCountryCode, passedLogoUrl]);
+  }, [id, passedCountryCode, passedLogoUrl]); // Keep dependencies
 
   if (isLoading) {
     return <CasinoDetailSkeleton />;
@@ -533,9 +544,7 @@ const CasinoDetail = () => {
                       <TableBody>
                         {cashGames.map((g) => {
                           const currencySymbol = formatCurrency(g.currency || '');
-                          const smallBlind = g.smallblind === '?' ? '0' : g.smallblind;
-                          const bigBlind = g.bigblind === '?' ? '0' : g.bigblind;
-                          const stakes = `${currencySymbol}${smallBlind}/${currencySymbol}${bigBlind}`;
+                          const stakes = `${currencySymbol}${g.smallblind}/${currencySymbol}${g.bigblind}`;
                           
                           return (
                             <TableRow key={g.id}>
