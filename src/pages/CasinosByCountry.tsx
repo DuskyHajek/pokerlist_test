@@ -316,8 +316,8 @@ const CasinosByCountry = () => {
                       key={casino.id}
                       // Updated link format: /casino/:id/:slug
                       to={`/casino/${casino.id}/${slug}`}
-                      // Pass countryCode in state for CasinoDetail to use
-                      state={{ countryCode: casino.countryCode }}
+                      // Pass countryCode AND logoUrl in state
+                      state={{ countryCode: casino.countryCode, logoUrl: casino.logo }}
                       className={cn(
                         "block rounded-lg border bg-card text-card-foreground shadow-sm",
                         "card-highlight overflow-hidden hover:border-primary/50 transition-all duration-300 group",

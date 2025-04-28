@@ -150,8 +150,9 @@ const CasinoDetail = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const passedCountryCode = location.state?.countryCode as string | undefined;
+  const passedLogoUrl = location.state?.logoUrl as string | undefined;
 
-  console.log(`[CasinoDetail Render] id: ${id}, passedCountryCode: ${passedCountryCode}`);
+  console.log(`[CasinoDetail Render] id: ${id}, passedCountryCode: ${passedCountryCode}, passedLogoUrl: ${passedLogoUrl}`);
 
   const [casino, setCasino] = useState<Casino | null>(null);
   const [liveTournaments, setLiveTournaments] = useState<LiveTournament[]>([]);
@@ -229,12 +230,10 @@ const CasinoDetail = () => {
         // Clean the description: Remove duplicate info lines
         let rawDescription = getAttr(clubElement, 'DESCRIPTION')?.replace(/&#10;/g, '\n') || '';
         const descriptionLines = rawDescription.split('\n');
+        // Use a more robust regex to filter out redundant info lines
+        const redundantInfoRegex = /^(address|phone|e-mail|web page)\s*:/i;
         const cleanedDescriptionLines = descriptionLines.filter(line => {
-            const trimmedLine = line.trim().toLowerCase();
-            return !(trimmedLine.startsWith('address:') ||
-                     trimmedLine.startsWith('phone:') ||
-                     trimmedLine.startsWith('e-mail:') ||
-                     trimmedLine.startsWith('web page:'));
+            return !redundantInfoRegex.test(line.trim());
         });
         const cleanedDescription = cleanedDescriptionLines.join('\n').trim();
 
@@ -253,8 +252,16 @@ const CasinoDetail = () => {
             description: cleanedDescription,
             imgUrl: getAttr(clubElement, 'IMGURL'),
         };
-        console.log("[CasinoDetail state] Setting casino state to:", casinoDetails);
-        setCasino(casinoDetails);
+
+        // --- Prioritize passed logo ---
+        const finalCasinoDetails: Casino = {
+          ...casinoDetails,
+          // If a logoUrl was passed via state, use it. Otherwise, use the one from the detail API.
+          logo: passedLogoUrl || casinoDetails.logo,
+        };
+
+        console.log("[CasinoDetail state] Setting final casino state to:", finalCasinoDetails);
+        setCasino(finalCasinoDetails);
 
         const tournamentElements = pokerlistElement.querySelectorAll("LIVETOURNAMENTS LIVEPOKER");
         const tournaments: LiveTournament[] = Array.from(tournamentElements).map(el => ({
@@ -302,7 +309,7 @@ const CasinoDetail = () => {
 
     fetchCasinoDetails();
 
-  }, [id, passedCountryCode]);
+  }, [id, passedCountryCode, passedLogoUrl]);
 
   if (isLoading) {
     return <CasinoDetailSkeleton />;
