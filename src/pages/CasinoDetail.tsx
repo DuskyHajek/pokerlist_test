@@ -146,6 +146,14 @@ const countryCodeToName: Record<string, string> = {
 };
 const getFlagUrl = (code: string) => `https://flagcdn.com/${code.toLowerCase()}.svg`;
 
+// --- Helper to format currency code to symbol (copied from CashGamesPage.tsx) ---
+const formatCurrency = (currencyCode?: string) => {
+  if (!currencyCode) return '';
+  if (currencyCode === 'EUR') return '€';
+  if (currencyCode === 'USD') return '$';
+  return currencyCode;
+};
+
 const CasinoDetail = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
@@ -525,15 +533,12 @@ const CasinoDetail = () => {
                       </TableHeader>
                       <TableBody>
                         {cashGames.map((g) => {
-                          // Determine stakes display string
-                          const stakes = (g.smallblind === '?' || g.bigblind === '?')
-                            ? 'N/A' // Show N/A if blinds are missing
-                            : `${g.currency || ''}${g.smallblind}/${g.currency || ''}${g.bigblind}`;
-
+                          const currencySymbol = formatCurrency(g.currency);
+                          const stakes = `${currencySymbol}${g.smallblind}/${currencySymbol}${g.bigblind}`;
                           return (
                             <TableRow key={g.id}>
                               <TableCell className="font-medium">{g.gametype}</TableCell>
-                              <TableCell>{stakes}</TableCell> {/* Use the calculated stakes */}
+                              <TableCell>{stakes}</TableCell>
                               <TableCell>{g.players || 'N/A'}</TableCell>
                             </TableRow>
                           );
