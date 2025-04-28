@@ -226,6 +226,18 @@ const CasinoDetail = () => {
           throw new Error(`Casino with ID ${id} not found in API response.`);
         }
 
+        // Clean the description: Remove duplicate info lines
+        let rawDescription = getAttr(clubElement, 'DESCRIPTION')?.replace(/&#10;/g, '\n') || '';
+        const descriptionLines = rawDescription.split('\n');
+        const cleanedDescriptionLines = descriptionLines.filter(line => {
+            const trimmedLine = line.trim().toLowerCase();
+            return !(trimmedLine.startsWith('address:') ||
+                     trimmedLine.startsWith('phone:') ||
+                     trimmedLine.startsWith('e-mail:') ||
+                     trimmedLine.startsWith('web page:'));
+        });
+        const cleanedDescription = cleanedDescriptionLines.join('\n').trim();
+
         const casinoDetails: Casino = {
             id: getAttr(clubElement, 'ID')!,
             name: getAttr(clubElement, 'TITLE') || 'N/A',
@@ -238,7 +250,7 @@ const CasinoDetail = () => {
             logo: getAttr(clubElement, 'LOGOURL'),
             size: getAttr(clubElement, 'SIZE'),
             rank: getAttr(clubElement, 'RANK'),
-            description: getAttr(clubElement, 'DESCRIPTION')?.replace(/&#10;/g, '\n'),
+            description: cleanedDescription,
             imgUrl: getAttr(clubElement, 'IMGURL'),
         };
         console.log("[CasinoDetail state] Setting casino state to:", casinoDetails);
@@ -375,27 +387,16 @@ const CasinoDetail = () => {
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
              <div className="container mx-auto px-4 flex flex-col md:flex-row items-center gap-6 md:gap-8 relative z-10">
                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white/50 bg-muted flex-shrink-0 flex items-center justify-center shadow-lg">
-                 {casino.logo || casino.imgUrl ? (
+                 {casino.logo ? (
                     <img
-                     src={casino.logo || casino.imgUrl}
+                     src={casino.logo}
                      alt={`${casino.name} Logo`}
                      className="w-full h-full object-cover"
                      onError={(e) => {
-                         const target = e.currentTarget;
-                         if (casino.imgUrl && target.src !== casino.imgUrl) {
-                             target.src = casino.imgUrl;
-                         } else {
-                             target.style.display = 'none';
-                             const placeholder = target.nextElementSibling;
-                             if (placeholder) placeholder.classList.remove('hidden');
-                         }
+                         e.currentTarget.style.display = 'none';
                      }}
                    />
                  ) : null}
-                 <span className={cn(
-                     "text-muted-foreground text-sm p-2 text-center",
-                     (casino.logo || casino.imgUrl) ? "hidden" : ""
-                 )}>No Logo</span>
                </div>
                <div className="text-center md:text-left">
                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 drop-shadow-md">
