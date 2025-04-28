@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 // Remove Tournament import if no longer needed or replace with CashGame type
 // import { Tournament } from "../data/mockData"; 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,9 +24,22 @@ interface CashGame {
   // No direct logo or location field in this API response
 }
 
-// Helper function to get attribute value safely (similar to CasinoDetail)
-const getAttr = (element: Element | null, attrName: string): string | undefined => {
-    return element?.getAttribute(attrName) ?? undefined;
+// --- Helper function to generate a URL-friendly slug ---
+const createSlug = (name: string): string => {
+  if (!name) return '';
+
+  const slug = name
+    .toString()
+    .normalize('NFD') // Split accented characters into base letters and diacritics
+    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+    .toLowerCase()
+    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(/[^\w-]+/g, '') // Remove all non-word chars except hyphen
+    .replace(/--+/g, '-') // Replace multiple - with single -
+    .replace(/^-+/, '') // Trim - from start of text
+    .replace(/-+$/, ''); // Trim - from end of text
+
+  return slug;
 };
 
 // --- Skeleton Component for Live Cash Game Row ---
@@ -54,45 +67,11 @@ const LiveCashGames = () => {
   const [cashGames, setCashGames] = useState<CashGame[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [logoCache, setLogoCache] = useState<{ [key: string]: string | null }>({}); // State for logo cache
 
-  // --- Function to fetch logo for a specific club ID ---
-  // (Identical to the one in CashGamesPage, consider extracting to a hook or util if used more)
-  const fetchLogoForClub = useCallback(async (clubId: string) => {
-    if (logoCache[clubId] !== undefined) {
-      return;
-    }
-    console.log(`[LiveCashGames] Fetching logo for clubId: ${clubId}`);
-    try {
-      const response = await fetch('/pokerlist-api-detail', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `id=${encodeURIComponent(clubId)}`
-      });
-      if (!response.ok) {
-        console.error(`[LiveCashGames] API Error fetching details for ${clubId}: ${response.status}`);
-        setLogoCache(prev => ({ ...prev, [clubId]: null }));
-        return;
-      }
-      const xmlData = await response.text();
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(xmlData, "text/xml");
-      const clubElement = xmlDoc.querySelector(`POKERLIST > POKERCLUB[ID="${clubId}"]`);
-      const logoUrl = getAttr(clubElement, 'LOGOURL');
-      console.log(`[LiveCashGames] Logo for ${clubId}: ${logoUrl || 'Not found'}`);
-      setLogoCache(prev => ({ ...prev, [clubId]: logoUrl || null }));
-    } catch (err) {
-      console.error(`[LiveCashGames] Failed to fetch/parse logo for ${clubId}:`, err);
-      setLogoCache(prev => ({ ...prev, [clubId]: null }));
-    }
-  }, [logoCache]);
-
-  // --- Fetch Cash Games Effect ---
   useEffect(() => {
     const fetchCashGames = async () => {
       setIsLoading(true);
       setError(null);
-      setLogoCache({}); // Clear logo cache on new fetch
       try {
         const response = await fetch('/api/cash_games.php');
         if (!response.ok) {
@@ -100,17 +79,7 @@ const LiveCashGames = () => {
         }
         const data = await response.json();
         if (Array.isArray(data)) {
-            const gamesToShow = data.slice(0, 6);
-            setCashGames(gamesToShow);
-            // --- Trigger logo fetches ---
-            const uniqueClubIds = [...new Set(gamesToShow.map(game => game.clubid))];
-            console.log("[LiveCashGames] Unique Club IDs found:", uniqueClubIds);
-            uniqueClubIds.forEach(clubId => {
-              if (logoCache[clubId] === undefined) {
-                fetchLogoForClub(clubId);
-              }
-            });
-            // ---------------------------
+            setCashGames(data.slice(0, 6));
         } else {
              console.warn("Received data is not an array:", data);
              setCashGames([]);
@@ -125,8 +94,7 @@ const LiveCashGames = () => {
     };
 
     fetchCashGames();
-     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // fetchLogoForClub is memoized
+  }, []);
 
   const formatCurrency = (currencyCode: string) => {
       if (currencyCode === 'EUR') return '€';
@@ -162,27 +130,19 @@ const LiveCashGames = () => {
             cashGames.map((game) => {
               const currencySymbol = formatCurrency(game.currency);
               const stakes = `${currencySymbol}${game.smallblind}/${currencySymbol}${game.bigblind}`;
-              const logoUrl = logoCache[game.clubid]; // Get logo from cache
+              const slug = createSlug(game.clubname);
 
               return (
-                <Link key={game.id} to={`/casinos/detail/${game.clubid}`} className="block no-underline">
+                <Link 
+                  key={game.id} 
+                  to={`/casino/${game.clubid}/${slug}`} 
+                  className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
+                >
                   <Card
-                    className="card-highlight p-4 flex items-start md:items-center gap-3 hover:border-primary/50 transition-colors max-w-full w-full mx-auto cursor-pointer"
+                    className="card-highlight p-4 flex items-start md:items-center gap-3 hover:border-primary/50 transition-colors max-w-full w-full mx-auto"
                   >
-                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-sm text-muted-foreground mt-1 md:mt-0 overflow-hidden border">
-                      {logoUrl ? (
-                        <img
-                          src={logoUrl}
-                          alt={`${game.clubname} Logo`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                          loading="lazy"
-                        />
-                      ) : logoUrl === null ? (
-                          game.clubname.substring(0, 1).toUpperCase() || 'P'
-                      ) : (
-                         <Skeleton className="w-full h-full" />
-                      )}
+                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-sm text-muted-foreground mt-1 md:mt-0">
+                      {game.clubname.substring(0, 1) || 'P'}
                     </div>
 
                     <div className="flex-grow flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-2">

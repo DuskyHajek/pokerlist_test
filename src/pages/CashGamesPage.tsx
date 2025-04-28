@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { Download } from "lucide-react";
+import { ChevronRight, Download } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import DownloadApp from "../components/DownloadApp";
+import { Link } from "react-router-dom";
 
 interface CashGame {
   id: string;
@@ -21,9 +21,22 @@ interface CashGame {
   clubid: string;
 }
 
-// Helper function to get attribute value safely (similar to CasinoDetail)
-const getAttr = (element: Element | null, attrName: string): string | undefined => {
-    return element?.getAttribute(attrName) ?? undefined;
+// --- Helper function to generate a URL-friendly slug ---
+const createSlug = (name: string): string => {
+  if (!name) return '';
+
+  const slug = name
+    .toString()
+    .normalize('NFD') // Split accented characters into base letters and diacritics
+    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+    .toLowerCase()
+    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(/[^\w-]+/g, '') // Remove all non-word chars except hyphen
+    .replace(/--+/g, '-') // Replace multiple - with single -
+    .replace(/^-+/, '') // Trim - from start of text
+    .replace(/-+$/, ''); // Trim - from end of text
+
+  return slug;
 };
 
 const CashGameListItemSkeleton = () => (
@@ -45,54 +58,11 @@ const CashGamesPage = () => {
   const [cashGames, setCashGames] = useState<CashGame[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [logoCache, setLogoCache] = useState<{ [key: string]: string | null }>({}); // State for logo cache
 
-  // --- Function to fetch logo for a specific club ID ---
-  const fetchLogoForClub = useCallback(async (clubId: string) => {
-    // Avoid refetching if already cached or fetching failed previously
-    if (logoCache[clubId] !== undefined) {
-      return;
-    }
-
-    console.log(`[CashGamesPage] Fetching logo for clubId: ${clubId}`);
-    try {
-      const response = await fetch('/pokerlist-api-detail', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `id=${encodeURIComponent(clubId)}`
-      });
-
-      if (!response.ok) {
-        // Don't throw, just log and mark as failed (null) to prevent retries
-        console.error(`[CashGamesPage] API Error fetching details for ${clubId}: ${response.status}`);
-        setLogoCache(prev => ({ ...prev, [clubId]: null }));
-        return;
-      }
-
-      const xmlData = await response.text();
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(xmlData, "text/xml");
-      const clubElement = xmlDoc.querySelector(`POKERLIST > POKERCLUB[ID="${clubId}"]`);
-
-      const logoUrl = getAttr(clubElement, 'LOGOURL');
-
-      console.log(`[CashGamesPage] Logo for ${clubId}: ${logoUrl || 'Not found'}`);
-      // Store the found URL or null if not found
-      setLogoCache(prev => ({ ...prev, [clubId]: logoUrl || null }));
-
-    } catch (err) {
-      console.error(`[CashGamesPage] Failed to fetch/parse logo for ${clubId}:`, err);
-      // Mark as failed (null) to prevent retries
-      setLogoCache(prev => ({ ...prev, [clubId]: null }));
-    }
-  }, [logoCache]); // Dependency: logoCache prevents infinite loops if fetchLogoForClub is used directly in useEffect
-
-  // --- Fetch Cash Games Effect ---
   useEffect(() => {
     const fetchCashGames = async () => {
       setIsLoading(true);
       setError(null);
-      setLogoCache({}); // Clear logo cache on new fetch
       try {
         const response = await fetch('/api/cash_games.php');
         if (!response.ok) {
@@ -101,16 +71,6 @@ const CashGamesPage = () => {
         const data = await response.json();
         if (Array.isArray(data)) {
           setCashGames(data);
-          // --- Trigger logo fetches after setting cash games ---
-          const uniqueClubIds = [...new Set(data.map(game => game.clubid))];
-          console.log("[CashGamesPage] Unique Club IDs found:", uniqueClubIds);
-          uniqueClubIds.forEach(clubId => {
-            // Check cache *before* calling fetch function (though fetch func also checks)
-             if (logoCache[clubId] === undefined) {
-               fetchLogoForClub(clubId);
-             }
-          });
-          // -----------------------------------------------------
         } else {
           console.warn("Received data is not an array:", data);
           setCashGames([]);
@@ -125,8 +85,7 @@ const CashGamesPage = () => {
     };
 
     fetchCashGames();
-     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // fetchLogoForClub is memoized with useCallback, safe to exclude if only called like this
+  }, []);
 
   const formatCurrency = (currencyCode: string) => {
     if (currencyCode === 'EUR') return '€';
@@ -167,32 +126,19 @@ const CashGamesPage = () => {
                 {cashGames.map(game => {
                   const currencySymbol = formatCurrency(game.currency);
                   const stakes = `${currencySymbol}${game.smallblind}/${currencySymbol}${game.bigblind}`;
-                  const logoUrl = logoCache[game.clubid]; // Get logo from cache
+                  const slug = createSlug(game.clubname);
 
                   return (
-                    <Link key={game.id} to={`/casinos/detail/${game.clubid}`} className="block no-underline">
+                    <Link 
+                      key={game.id} 
+                      to={`/casino/${game.clubid}/${slug}`} 
+                      className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
+                    >
                       <Card
-                        className="card-highlight p-4 flex items-start md:items-center gap-3 hover:border-primary/50 transition-colors cursor-pointer"
+                        className="card-highlight p-4 flex items-start md:items-center gap-3 hover:border-primary/50 transition-colors"
                       >
-                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-sm text-muted-foreground mt-1 md:mt-0 overflow-hidden border">
-                          {logoUrl ? (
-                            <img
-                              src={logoUrl}
-                              alt={`${game.clubname} Logo`}
-                              className="w-full h-full object-cover"
-                              onError={(e) => { e.currentTarget.style.display = 'none'; /* Hide on error */ }}
-                              loading="lazy"
-                            />
-                          ) : logoUrl === null ? (
-                              // Explicitly null means fetch failed or no logo found
-                               game.clubname.substring(0, 1).toUpperCase() || 'P'
-                          ) : (
-                             // Undefined means still loading (or not triggered yet)
-                             // Optionally show a mini-skeleton here while loading logo?
-                             <Skeleton className="w-full h-full" /> // Simple skeleton while logo loads
-                             // Or just show the letter immediately:
-                             // game.clubname.substring(0, 1).toUpperCase() || 'P'
-                          )}
+                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-sm text-muted-foreground mt-1 md:mt-0">
+                          {game.clubname.substring(0, 1) || 'P'}
                         </div>
 
                         <div className="flex-grow flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-2">
