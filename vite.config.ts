@@ -19,9 +19,15 @@ export default defineConfig(({ mode }) => ({
       // New proxy rule for the external poker API
       '/pokerlist-api': {
         target: 'https://pokerlist.com',
-        changeOrigin: true, // Necessary for virtual hosted sites
-        secure: true,      // Keep true unless you encounter SSL certificate issues
-        rewrite: (path) => path.replace(/^\/pokerlist-api/, '/pl/pokerclubs.php'), // Rewrite to the specific endpoint
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/pokerlist-api/, '/pl/pokerclubs.php'),
+      },
+      '/pokerlist-api-detail': {
+        target: 'https://pokerlist.com',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/pokerlist-api-detail/, '/pl/pokerclub.php'),
       }
     }
   },
