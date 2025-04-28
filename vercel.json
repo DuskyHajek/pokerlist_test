@@ -2,6 +2,10 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/pokerlist-api-detail",
+      "destination": "https://pokerlist.com/pl/pokerclub.php"
+    },
+    {
       "source": "/pokerlist-api",
       "destination": "https://pokerlist.com/pl/pokerclubs.php"
     },

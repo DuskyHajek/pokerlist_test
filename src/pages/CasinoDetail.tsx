@@ -138,7 +138,7 @@ const CasinoDetail = () => {
       setCasino(null); // Clear previous casino data
 
       try {
-        const response = await fetch('/pokerlist-api', { // Use the proxy
+        const response = await fetch('/pokerlist-api-detail', { // Use the new proxy for detail
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
