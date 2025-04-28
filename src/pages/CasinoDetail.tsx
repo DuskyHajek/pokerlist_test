@@ -532,33 +532,43 @@ const CasinoDetail = () => {
               </CardHeader>
               <CardContent>
                 {cashGames.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Game Type</TableHead>
-                          <TableHead>Stakes</TableHead>
-                          <TableHead>Players</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {cashGames.map((g) => {
-                          const currencySymbol = formatCurrency(g.currency || '');
-                          const stakes = `${currencySymbol}${g.smallblind}/${currencySymbol}${g.bigblind}`;
-                          
-                          return (
-                            <TableRow key={g.id}>
-                              <TableCell className="font-medium">{g.gametype}</TableCell>
-                              <TableCell>{stakes}</TableCell>
-                              <TableCell>{g.players || 'N/A'}</TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
+                  <div className="space-y-3 md:space-y-4">
+                    {cashGames.map((g) => {
+                      const currencySymbol = formatCurrency(g.currency || '');
+                      const stakes = `${currencySymbol}${g.smallblind}/${currencySymbol}${g.bigblind}`;
+                      const updatedTime = g.updated 
+                          ? new Date(g.updated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                          : null; 
+
+                      return (
+                        <Card key={g.id} className="card-highlight p-4 flex items-start md:items-center gap-3">
+                            <div className="flex-grow flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-2">
+                                <div className="flex-grow">
+                                    <h3 className="text-base md:text-lg font-semibold leading-tight">{g.gametype}</h3>
+                                </div>
+
+                                <div className="flex flex-col items-start md:items-end md:flex-row md:items-center gap-1 md:gap-3 text-xs md:text-sm">
+                                    <div className="flex items-center gap-2 mt-1 md:mt-0">
+                                        <span className="px-1.5 py-0.5 text-xs font-semibold rounded bg-pokerBlue text-white whitespace-nowrap">{stakes}</span>
+                                        {g.players && (
+                                            <span className="px-1.5 py-0.5 text-xs font-semibold rounded bg-pokerPurple text-white whitespace-nowrap">
+                                                Players: {g.players}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {updatedTime && (
+                                        <div className="text-muted-foreground md:text-right md:w-auto flex-shrink-0 mt-1 md:mt-0">
+                                            Updated: {updatedTime}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </Card>
+                      );
+                    })}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground text-center py-4">No cash games reported for this casino at the moment.</p>
+                  <p className="text-muted-foreground text-center py-4">No live cash games reported for this casino at the moment.</p>
                 )}
               </CardContent>
             </Card>
