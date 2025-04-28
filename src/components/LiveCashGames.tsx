@@ -55,7 +55,7 @@ const LiveCashGames = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch('/api/cash_games.php');
+        const response = await fetch('https://www.pokerlist.com/pl/cashgames_export.php?cid=pokerlist-web2');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
