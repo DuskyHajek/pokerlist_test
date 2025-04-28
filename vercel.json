@@ -8,6 +8,10 @@
     {
       "source": "/pokerlist-api",
       "destination": "https://pokerlist.com/pl/pokerclubs.php"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 } 
