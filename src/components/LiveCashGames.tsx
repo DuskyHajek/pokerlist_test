@@ -139,7 +139,7 @@ const LiveCashGames = () => {
                   className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
                 >
                   <Card
-                    className="card-highlight p-4 flex items-start md:items-center gap-3 hover:border-primary/50 transition-colors max-w-full w-full mx-auto"
+                    className="card-highlight p-4 flex items-start md:items-center gap-3 hover:border-primary/50 transition-all duration-300 hover:shadow-md max-w-full w-full mx-auto"
                   >
                     <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-sm text-muted-foreground mt-1 md:mt-0">
                       {game.clubname.substring(0, 1) || 'P'}
@@ -153,11 +153,8 @@ const LiveCashGames = () => {
 
                       <div className="flex flex-col items-start md:items-end md:flex-row md:items-center gap-1 md:gap-3 text-xs md:text-sm">
                         <div className="flex items-center gap-2 mt-1 md:mt-0">
-                          <span className="px-1.5 py-0.5 text-xs font-semibold rounded bg-pokerBlue text-white whitespace-nowrap">{stakes}</span>
-                          <span className="px-1.5 py-0.5 text-xs font-semibold rounded bg-pokerPurple text-white whitespace-nowrap">Players: {game.players}</span>
-                        </div>
-                        <div className="text-muted-foreground md:text-right md:w-auto flex-shrink-0 mt-1 md:mt-0">
-                          Updated: {new Date(game.updated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          <span className="px-2 py-1 text-sm font-bold rounded bg-pokerBlue text-white whitespace-nowrap">{stakes}</span>
+                          <span className="px-2 py-1 text-sm font-semibold rounded bg-pokerPurple text-white whitespace-nowrap">Players: {game.players}</span>
                         </div>
                       </div>
                     </div>

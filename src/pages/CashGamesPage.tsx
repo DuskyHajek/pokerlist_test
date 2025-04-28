@@ -19,6 +19,7 @@ interface CashGame {
   description: string;
   clubname: string;
   clubid: string;
+  logoUrl?: string;
 }
 
 // --- Helper function to generate a URL-friendly slug ---
@@ -54,37 +55,99 @@ const CashGameListItemSkeleton = () => (
   </Card>
 );
 
+// Helper to get attribute value safely (similar to CasinoDetail)
+const getAttr = (element: Element | null, attrName: string): string | undefined => {
+    return element?.getAttribute(attrName) ?? undefined;
+};
+
+// Function to fetch logo for a single club ID
+const fetchLogoForClub = async (clubId: string): Promise<string | undefined> => {
+    console.log(`[fetchLogoForClub] Fetching logo for club ID: ${clubId}`);
+    try {
+        const response = await fetch('/pokerlist-api-detail', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `id=${encodeURIComponent(clubId)}`
+        });
+        if (!response.ok) {
+            console.error(`[fetchLogoForClub] API error for club ${clubId}: Status ${response.status}`);
+            return undefined; // Don't throw, just return undefined
+        }
+        const xmlData = await response.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlData, "text/xml");
+        const clubElement = xmlDoc.querySelector(`POKERLIST > POKERCLUB[ID="${clubId}"]`);
+        const logoUrl = getAttr(clubElement, 'LOGOURL');
+        console.log(`[fetchLogoForClub] Found logo for ${clubId}: ${logoUrl}`);
+        return logoUrl;
+    } catch (error) {
+        console.error(`[fetchLogoForClub] Failed to fetch/parse logo for club ${clubId}:`, error);
+        return undefined; // Return undefined on any error
+    }
+};
+
 const CashGamesPage = () => {
   const [cashGames, setCashGames] = useState<CashGame[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCashGames = async () => {
+    const fetchCashGamesAndLogos = async () => {
       setIsLoading(true);
       setError(null);
+      let initialCashGames: CashGame[] = [];
+
       try {
+        console.log("[CashGamesPage useEffect] Fetching initial cash games...");
         const response = await fetch('/api/cash_games.php');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
         if (Array.isArray(data)) {
+          initialCashGames = data;
           setCashGames(data);
+          console.log("[CashGamesPage useEffect] Initial cash games fetched:", initialCashGames.length);
         } else {
-          console.warn("Received data is not an array:", data);
+          console.warn("[CashGamesPage useEffect] Received data is not an array:", data);
           setCashGames([]);
         }
+
+        if (initialCashGames.length > 0) {
+            console.log("[CashGamesPage useEffect] Fetching logos...");
+            const uniqueClubIds = [...new Set(initialCashGames.map(game => game.clubid))];
+            console.log("[CashGamesPage useEffect] Unique club IDs:", uniqueClubIds);
+
+            const logoPromises = uniqueClubIds.map(id => fetchLogoForClub(id));
+            const logoUrls = await Promise.all(logoPromises);
+
+            const clubLogoMap = new Map<string, string | undefined>();
+            uniqueClubIds.forEach((id, index) => {
+                if (logoUrls[index]) {
+                    clubLogoMap.set(id, logoUrls[index]);
+                }
+            });
+            console.log("[CashGamesPage useEffect] Logo map created:", clubLogoMap);
+
+            const gamesWithLogos = initialCashGames.map(game => ({
+                ...game,
+                logoUrl: clubLogoMap.get(game.clubid)
+            }));
+            setCashGames(gamesWithLogos);
+            console.log("[CashGamesPage useEffect] Updated cash games with logos.");
+        }
+
       } catch (e) {
-        console.error("Failed to fetch cash games:", e);
-        setError("Failed to load cash games. Please try again later.");
+        console.error("[CashGamesPage useEffect] Failed to fetch data:", e);
+        setError(e instanceof Error ? e.message : "Failed to load cash games. Please try again later.");
         setCashGames([]);
       } finally {
         setIsLoading(false);
+        console.log("[CashGamesPage useEffect] Fetch process finished.");
       }
     };
 
-    fetchCashGames();
+    fetchCashGamesAndLogos();
   }, []);
 
   const formatCurrency = (currencyCode: string) => {
@@ -127,21 +190,34 @@ const CashGamesPage = () => {
                   const currencySymbol = formatCurrency(game.currency);
                   const stakes = `${game.smallblind}/${game.bigblind} ${currencySymbol}`;
                   const slug = createSlug(game.clubname);
-                  const clubInitial = game.clubname?.substring(0, 1).toUpperCase() || '?';
 
                   return (
-                    <Link 
-                      key={game.id} 
+                    <Link
+                      key={game.id}
                       to={`/casino/${game.clubid}/${slug}`}
-                      state={{ countryCode: null, clubInitial: clubInitial }}
+                      state={{ logoUrl: game.logoUrl }}
                       className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
                     >
                       <Card
-                        className="card-highlight p-4 flex items-start md:items-center gap-3 hover:border-primary/50 transition-colors"
+                        className="card-highlight p-4 flex items-start md:items-center gap-3 hover:border-primary/50 transition-all duration-300 hover:shadow-md"
                       >
-                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-sm text-muted-foreground mt-1 md:mt-0">
-                          {game.clubname.substring(0, 1) || 'P'}
-                        </div>
+                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-sm text-muted-foreground mt-1 md:mt-0 overflow-hidden border border-border">
+                           {game.logoUrl ? (
+                               <img
+                                src={game.logoUrl}
+                                alt={`${game.clubname} logo`}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    const target = e.currentTarget;
+                                    target.style.display = 'none';
+                                    const parent = target.parentElement;
+                                    if(parent) parent.innerHTML = game.clubname.substring(0, 1) || 'P';
+                                }}
+                               />
+                           ) : (
+                             game.clubname.substring(0, 1) || 'P'
+                           )}
+                         </div>
 
                         <div className="flex-grow flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-2">
                           <div className="flex-grow">
@@ -151,11 +227,8 @@ const CashGamesPage = () => {
 
                           <div className="flex flex-col items-start md:items-end md:flex-row md:items-center gap-1 md:gap-3 text-xs md:text-sm">
                             <div className="flex items-center gap-2 mt-1 md:mt-0">
-                              <span className="px-1.5 py-0.5 text-xs font-semibold rounded bg-pokerBlue text-white whitespace-nowrap">{stakes}</span>
-                              <span className="px-1.5 py-0.5 text-xs font-semibold rounded bg-pokerPurple text-white whitespace-nowrap">Players: {game.players}</span>
-                            </div>
-                            <div className="text-muted-foreground md:text-right md:w-auto flex-shrink-0 mt-1 md:mt-0">
-                              Updated: {new Date(game.updated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              <span className="px-2 py-1 text-sm font-bold rounded bg-pokerBlue text-white whitespace-nowrap">{stakes}</span>
+                              <span className="px-2 py-1 text-sm font-semibold rounded bg-pokerPurple text-white whitespace-nowrap">Players: {game.players}</span>
                             </div>
                           </div>
                         </div>

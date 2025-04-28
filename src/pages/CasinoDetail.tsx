@@ -159,9 +159,8 @@ const CasinoDetail = () => {
   const location = useLocation();
   const passedCountryCode = location.state?.countryCode as string | undefined;
   const passedLogoUrl = location.state?.logoUrl as string | undefined;
-  const passedInitial = location.state?.clubInitial as string | undefined;
 
-  console.log(`[CasinoDetail Render] id: ${id}, passedCountryCode: ${passedCountryCode}, passedLogoUrl: ${passedLogoUrl}, passedInitial: ${passedInitial}`);
+  console.log(`[CasinoDetail Render] id: ${id}, passedCountryCode: ${passedCountryCode}, passedLogoUrl: ${passedLogoUrl}`);
 
   const [casino, setCasino] = useState<Casino | null>(null);
   const [liveTournaments, setLiveTournaments] = useState<LiveTournament[]>([]);
@@ -402,9 +401,6 @@ const CasinoDetail = () => {
     ? liveTournaments
     : liveTournaments.slice(0, 10);
 
-  // Use the actual logo from the fetched casino data if available, otherwise use the passed logo
-  const displayLogoUrl = casino?.logo || passedLogoUrl;
-
   return (
     <div className="min-h-screen flex flex-col">
       <Helmet>
@@ -422,26 +418,17 @@ const CasinoDetail = () => {
         >
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
              <div className="container mx-auto px-4 flex flex-col md:flex-row items-center gap-6 md:gap-8 relative z-10">
-               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white/50 bg-muted flex-shrink-0 flex items-center justify-center shadow-lg text-4xl font-semibold text-muted-foreground">
-                 {/* Display logo if available, otherwise display passed initial */}
-                 {displayLogoUrl ? (
+               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white/50 bg-muted flex-shrink-0 flex items-center justify-center shadow-lg">
+                 {casino.logo ? (
                     <img
-                     src={displayLogoUrl}
+                     src={casino.logo}
                      alt={`${casino.name} Logo`}
                      className="w-full h-full object-cover"
                      onError={(e) => {
-                       // Optionally hide img on error, or show initial again
-                       e.currentTarget.style.display = 'none'; 
-                       const parent = e.currentTarget.parentElement;
-                       if(parent && !parent.textContent) { // Avoid adding text if already there
-                         parent.textContent = passedInitial || casino.name?.substring(0, 1) || '?';
-                       }
+                         e.currentTarget.style.display = 'none';
                      }}
                    />
-                 ) : (
-                   // Display the initial passed from the previous page, or fallback to casino name initial
-                   <span>{passedInitial || casino.name?.substring(0, 1) || '?'}</span>
-                 )}
+                 ) : null}
                </div>
                <div className="text-center md:text-left">
                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 drop-shadow-md">
@@ -549,9 +536,6 @@ const CasinoDetail = () => {
                     {cashGames.map((g) => {
                       const currencySymbol = formatCurrency(g.currency || '');
                       const stakes = `${g.smallblind}/${g.bigblind} ${currencySymbol}`;
-                      const updatedTime = g.updated 
-                          ? new Date(g.updated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-                          : null; 
 
                       return (
                         <Card key={g.id} className="card-highlight p-4 flex items-start md:items-center gap-3">
@@ -562,18 +546,13 @@ const CasinoDetail = () => {
 
                                 <div className="flex flex-col items-start md:items-end md:flex-row md:items-center gap-1 md:gap-3 text-xs md:text-sm">
                                     <div className="flex items-center gap-2 mt-1 md:mt-0">
-                                        <span className="px-1.5 py-0.5 text-xs font-semibold rounded bg-pokerBlue text-white whitespace-nowrap">{stakes}</span>
+                                        <span className="px-2 py-1 text-sm font-bold rounded bg-pokerBlue text-white whitespace-nowrap">{stakes}</span>
                                         {g.players && (
-                                            <span className="px-1.5 py-0.5 text-xs font-semibold rounded bg-pokerPurple text-white whitespace-nowrap">
+                                            <span className="px-2 py-1 text-sm font-semibold rounded bg-pokerPurple text-white whitespace-nowrap">
                                                 Players: {g.players}
                                             </span>
                                         )}
                                     </div>
-                                    {updatedTime && (
-                                        <div className="text-muted-foreground md:text-right md:w-auto flex-shrink-0 mt-1 md:mt-0">
-                                            Updated: {updatedTime}
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         </Card>
