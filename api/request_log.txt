@@ -1,0 +1,14 @@
+2025-04-28 11:31:08 - Request Method: GET
+2025-04-28 11:31:08 - Request Body: 
+2025-04-28 11:31:08 - POST data: Array
+(
+)
+
+2025-04-28 11:31:08 - GET data: Array
+(
+    [id] => 3042
+)
+
+2025-04-28 11:31:08 - External URL: https://pokerlist.com/pl/pokerclub.php?id=3042
+2025-04-28 11:31:08 - Response status code: 200
+2025-04-28 11:31:08 - Successfully returned XML for ID: 3042

@@ -1,129 +1,169 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Skeleton } from "@/components/ui/skeleton";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { countries } from "../data/mockData"; // Keep for country name lookup for now
+import { countries } from "../data/mockData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { MapPin, Phone, Globe, AlertCircle, ExternalLink } from "lucide-react";
+import { MapPin, Phone, Globe, AlertCircle, ExternalLink, Calendar, Users, CircleDollarSign, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-// --- Reusing the Casino interface (adjust if API provides more detail) ---
+// --- Updated Casino Interface ---
 interface Casino {
   id: string;
-  name: string; // TITLE
-  address: string; // ADDRESS
-  city: string; // CITY
-  countryCode: string; // COUNTRY
-  latitude?: string; // LATITUDE (string from XML)
-  longitude?: string; // LONGITUDE (string from XML)
-  contact?: string; // CONTACT
-  url?: string; // URL
-  logo?: string; // LOGOURL
-  size?: string; // SIZE
-  rank?: string; // RANK
+  name: string;
+  address: string;
+  city: string;
+  latitude?: string;
+  longitude?: string;
+  contact?: string;
+  url?: string;
+  logo?: string;
+  size?: string;
+  rank?: string;
+  description?: string;
+  imgUrl?: string;
 }
 
-// --- Reusing the XML Parser (adapted for single casino possibility) ---
-// It expects the API to return one or more <POKERCLUB> tags.
-// If fetching by ID returns *only* one tag, it will still work.
-const parsePokerClubsXml = (xmlString: string): Casino[] => {
-  const casinos: Casino[] = [];
-  const clubRegex = /<POKERCLUB\s+([^>]+)\/>/g;
-  const attrRegex = /(\w+)="([^"]*)"/g;
+// --- Interface for Live Tournaments ---
+// Based on attributes seen in the <LIVEPOKER> tags
+interface LiveTournament {
+  id: string;
+  title: string;
+  startDateStr: string;
+  currency: string;
+  buyin: string;
+  description?: string;
+  guaranteed?: string;
+  latereg?: string;
+}
 
-  let match;
-  while ((match = clubRegex.exec(xmlString)) !== null) {
-    const attributesString = match[1];
-    const casinoData: { [key: string]: any } = {};
-    let attrMatch;
-    while ((attrMatch = attrRegex.exec(attributesString)) !== null) {
-      casinoData[attrMatch[1]] = attrMatch[2];
-    }
+// --- Interface for Cash Games (Assumed Structure) ---
+// NEED TO CONFIRM ACTUAL STRUCTURE if/when API returns it
+interface CashGame {
+  id: string;
+  smallblind: string;
+  bigblind: string;
+  gametype: string;
+  players?: string;
+  currency?: string;
+  updated?: string;
+  minbuyin?: string;
+}
 
-    // Map raw attributes to the Casino interface structure
-    if (casinoData['ID']) {
-      casinos.push({
-        id: casinoData['ID'],
-        name: casinoData['TITLE'] || 'N/A',
-        address: casinoData['ADDRESS'] || '',
-        city: casinoData['CITY'] || '',
-        countryCode: casinoData['COUNTRY'] || '',
-        latitude: casinoData['LATITUDE'],
-        longitude: casinoData['LONGITUDE'],
-        contact: casinoData['CONTACT'],
-        url: casinoData['URL'],
-        logo: casinoData['LOGOURL'],
-        size: casinoData['SIZE'],
-        rank: casinoData['RANK'],
-      });
-    }
-  }
-  return casinos;
-};
+// --- Interface for Club Pictures ---
+interface ClubPicture {
+    href: string;
+}
 
-// --- Skeleton Component for Details Page ---
+// --- Skeleton Component (Remains the same) ---
 const CasinoDetailSkeleton = () => (
-  <div className="min-h-screen flex flex-col">
-    <Navbar />
-    <main className="flex-grow pt-16 bg-background">
-      {/* Skeleton Header */}
-      <div className="hero-gradient-casinos hero-lines-casinos py-16 md:py-24">
-        <div className="container mx-auto px-4 flex flex-col md:flex-row items-center gap-6 md:gap-8">
-          <Skeleton className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-muted/30 border-4 border-white/50 flex-shrink-0" />
-          <div className="text-center md:text-left">
-            <Skeleton className="h-10 w-64 md:w-96 mb-3 bg-muted/40" />
-            <Skeleton className="h-6 w-48 md:w-64 bg-muted/40" />
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <main className="flex-grow pt-16 bg-background">
+        {/* Skeleton Header */}
+        <div className="hero-gradient-casinos hero-lines-casinos py-16 md:py-24">
+          <div className="container mx-auto px-4 flex flex-col md:flex-row items-center gap-6 md:gap-8">
+            <Skeleton className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-muted/30 border-4 border-white/50 flex-shrink-0" />
+            <div className="text-center md:text-left">
+              <Skeleton className="h-10 w-64 md:w-96 mb-3 bg-muted/40" />
+              <Skeleton className="h-6 w-48 md:w-64 bg-muted/40" />
+            </div>
           </div>
         </div>
-      </div>
-      {/* Skeleton Body */}
-      <section className="py-12 md:py-16">
-        <div className="container mx-auto px-4">
-          <Card className="overflow-hidden shadow-lg">
-            <CardHeader>
-              <CardTitle>
-                <Skeleton className="h-8 w-1/3" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-start space-x-3">
-                <Skeleton className="h-5 w-5 mt-1" /> <Skeleton className="h-5 w-full" />
-              </div>
-              <div className="flex items-start space-x-3">
-                <Skeleton className="h-5 w-5 mt-1" /> <Skeleton className="h-5 w-3/4" />
-              </div>
-              <div className="flex items-start space-x-3">
-                <Skeleton className="h-5 w-5 mt-1" /> <Skeleton className="h-5 w-1/2" />
-              </div>
-              <div className="flex items-start space-x-3">
-                <Skeleton className="h-5 w-5 mt-1" /> <Skeleton className="h-5 w-1/2" />
-              </div>
-              <div className="pt-4">
-                 <Skeleton className="h-10 w-32" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-    </main>
-    <Footer />
-  </div>
-);
+        {/* Skeleton Body */}
+        <section className="py-12 md:py-16">
+          <div className="container mx-auto px-4">
+            <Card className="overflow-hidden shadow-lg mb-8">
+              <CardHeader>
+                <CardTitle>
+                  <Skeleton className="h-8 w-1/3" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-start space-x-3">
+                  <Skeleton className="h-5 w-5 mt-1" /> <Skeleton className="h-5 w-full" />
+                </div>
+                <div className="flex items-start space-x-3">
+                  <Skeleton className="h-5 w-5 mt-1" /> <Skeleton className="h-5 w-3/4" />
+                </div>
+                <div className="flex items-start space-x-3">
+                  <Skeleton className="h-5 w-5 mt-1" /> <Skeleton className="h-5 w-1/2" />
+                </div>
+                <div className="flex items-start space-x-3">
+                  <Skeleton className="h-5 w-5 mt-1" /> <Skeleton className="h-5 w-1/2" />
+                </div>
+                <div className="pt-4">
+                   <Skeleton className="h-10 w-32" />
+                </div>
+              </CardContent>
+            </Card>
+             <Card className="overflow-hidden shadow-lg mb-8">
+               <CardHeader><CardTitle><Skeleton className="h-8 w-1/2" /></CardTitle></CardHeader>
+               <CardContent><Skeleton className="h-20 w-full" /></CardContent>
+             </Card>
+             <Card className="overflow-hidden shadow-lg">
+               <CardHeader><CardTitle><Skeleton className="h-8 w-1/2" /></CardTitle></CardHeader>
+               <CardContent><Skeleton className="h-20 w-full" /></CardContent>
+             </Card>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </div>
+  );
+
+// --- Helper to get attribute value safely ---
+const getAttr = (element: Element | null, attrName: string): string | undefined => {
+    return element?.getAttribute(attrName) ?? undefined;
+};
+
+// --- Helper to format date string ---
+const formatTournamentDate = (dateStr: string | undefined): string => {
+    if (!dateStr) return 'N/A';
+    try {
+        // Assuming dateStr is like "YYYY-MM-DD HH:MM:SS"
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return dateStr; // Return original if invalid
+        return date.toLocaleString(undefined, {
+            year: 'numeric', month: 'short', day: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+    } catch (e) {
+        console.error("Error formatting date:", dateStr, e);
+        return dateStr; // Fallback to original string
+    }
+};
 
 const CasinoDetail = () => {
   const { id } = useParams<{ id: string }>();
-  console.log(`[CasinoDetail Render] id from useParams: ${id}`); // Log ID on render
+  const location = useLocation();
+  const passedCountryCode = location.state?.countryCode as string | undefined;
+
+  console.log(`[CasinoDetail Render] id: ${id}, passedCountryCode: ${passedCountryCode}`);
+
   const [casino, setCasino] = useState<Casino | null>(null);
+  const [liveTournaments, setLiveTournaments] = useState<LiveTournament[]>([]);
+  const [cashGames, setCashGames] = useState<CashGame[]>([]);
+  const [clubPictures, setClubPictures] = useState<ClubPicture[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [countryName, setCountryName] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log(`[CasinoDetail useEffect] Running effect for id: ${id}`); // Log ID when effect runs
+    if (passedCountryCode) {
+      const foundCountry = countries.find(c => c.code.toLowerCase() === passedCountryCode.toLowerCase());
+      setCountryName(foundCountry?.name || passedCountryCode);
+      console.log(`[CasinoDetail useEffect] Set countryName to "${countryName}" based on passed code "${passedCountryCode}"`);
+    } else {
+      console.warn("[CasinoDetail useEffect] Country code not passed via route state.");
+      setCountryName("Unknown Country");
+    }
+
     if (!id) {
       console.error("[CasinoDetail useEffect] ID is missing!");
       setError("Casino ID is missing from URL parameter.");
@@ -132,13 +172,16 @@ const CasinoDetail = () => {
     }
 
     const fetchCasinoDetails = async () => {
-      console.log(`[CasinoDetail fetch] Fetching details for id: ${id}`); // Log ID before fetch
+      console.log(`[CasinoDetail fetch] Fetching details for id: ${id}`);
       setIsLoading(true);
       setError(null);
-      setCasino(null); // Clear previous casino data
+      setCasino(null);
+      setLiveTournaments([]);
+      setCashGames([]);
+      setClubPictures([]);
 
       try {
-        const response = await fetch('/pokerlist-api-detail', { // Use the new proxy for detail
+        const response = await fetch('/pokerlist-api-detail', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -149,31 +192,83 @@ const CasinoDetail = () => {
         if (!response.ok) {
           const errorText = await response.text().catch(() => 'Could not read error response.');
           console.error(`[CasinoDetail fetch] API Error Response (status ${response.status}):`, errorText);
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`API error! status: ${response.status}, ${errorText}`);
         }
 
         const xmlData = await response.text();
-        console.log("[CasinoDetail fetch] Received XML Data:", xmlData); // Log raw XML
+        console.log("[CasinoDetail fetch] Received XML Data:", xmlData);
 
-        const parsedCasinos = parsePokerClubsXml(xmlData);
-        console.log("[CasinoDetail parse] Parsed Casinos:", parsedCasinos); // Log parsed array
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlData, "text/xml");
+        const parseError = xmlDoc.querySelector("parsererror");
+         if (parseError) {
+            console.error("[CasinoDetail parse] XML Parsing Error:", parseError.textContent);
+             throw new Error("Failed to parse XML response.");
+         }
 
-        // --- FIX: Find the specific casino by ID within the returned list --- 
-        const foundCasino = parsedCasinos.find(casino => casino.id === id);
+        const pokerlistElement = xmlDoc.querySelector("POKERLIST");
+        if (!pokerlistElement) {
+            throw new Error("Invalid XML structure: <POKERLIST> tag not found.");
+        }
 
-        if (!foundCasino) {
-          // Throw error if the specific ID wasn't found in the list returned by the API
-          console.error(`[CasinoDetail parse] Casino with ID ${id} not found in the API response list.`);
+        const clubElement = pokerlistElement.querySelector("POKERCLUB");
+        if (!clubElement || getAttr(clubElement, 'ID') !== id) {
+          console.error(`[CasinoDetail parse] Casino with ID ${id} not found in the API response XML.`);
           throw new Error(`Casino with ID ${id} not found in API response.`);
         }
-        // --- End FIX ---
 
-        console.log("[CasinoDetail state] Setting casino state to:", foundCasino); // Log casino before setting state
-        setCasino(foundCasino);
+        const casinoDetails: Casino = {
+            id: getAttr(clubElement, 'ID')!,
+            name: getAttr(clubElement, 'TITLE') || 'N/A',
+            address: getAttr(clubElement, 'ADDRESS') || '',
+            city: getAttr(clubElement, 'CITY') || '',
+            latitude: getAttr(clubElement, 'LATITUDE'),
+            longitude: getAttr(clubElement, 'LONGITUDE'),
+            contact: getAttr(clubElement, 'CONTACT'),
+            url: getAttr(clubElement, 'URL'),
+            logo: getAttr(clubElement, 'LOGOURL'),
+            size: getAttr(clubElement, 'SIZE'),
+            rank: getAttr(clubElement, 'RANK'),
+            description: getAttr(clubElement, 'DESCRIPTION')?.replace(/&#10;/g, '\n'),
+            imgUrl: getAttr(clubElement, 'IMGURL'),
+        };
+        console.log("[CasinoDetail state] Setting casino state to:", casinoDetails);
+        setCasino(casinoDetails);
 
-        // Find country name from mock data
-        const foundCountry = countries.find(c => c.code === foundCasino.countryCode);
-        setCountryName(foundCountry?.name || foundCasino.countryCode); // Fallback to code
+        const tournamentElements = pokerlistElement.querySelectorAll("LIVETOURNAMENTS LIVEPOKER");
+        const tournaments: LiveTournament[] = Array.from(tournamentElements).map(el => ({
+            id: getAttr(el, 'ID')!,
+            title: getAttr(el, 'TITLE') || 'N/A',
+            startDateStr: getAttr(el, 'STARTDATESTR') || '',
+            currency: getAttr(el, 'CURRENCY') || '',
+            buyin: getAttr(el, 'BUYIN') || 'N/A',
+            description: getAttr(el, 'DESCRIPTION'),
+            guaranteed: getAttr(el, 'GUARANTEED'),
+            latereg: getAttr(el, 'LATEREG'),
+        }));
+        console.log("[CasinoDetail state] Setting liveTournaments state:", tournaments);
+        setLiveTournaments(tournaments);
+
+        const cashGameElements = pokerlistElement.querySelectorAll("CASHGAMES CASHGAME");
+        const games: CashGame[] = Array.from(cashGameElements).map(el => ({
+            id: getAttr(el, 'ID')!,
+            smallblind: getAttr(el, 'SMALLBLIND') || '?',
+            bigblind: getAttr(el, 'BIGBLIND') || '?',
+            gametype: getAttr(el, 'GAMETYPE') || 'N/A',
+            players: getAttr(el, 'PLAYERS'),
+            currency: getAttr(el, 'CURRENCY'),
+            updated: getAttr(el, 'UPDATED'),
+            minbuyin: getAttr(el, 'MINBUYIN'),
+        }));
+        console.log("[CasinoDetail state] Setting cashGames state:", games);
+        setCashGames(games);
+
+        const pictureElements = pokerlistElement.querySelectorAll("CLUBPICTURES PICTURE");
+        const pictures: ClubPicture[] = Array.from(pictureElements).map(el => ({
+            href: getAttr(el, 'href') || '',
+        })).filter(p => p.href);
+        console.log("[CasinoDetail state] Setting clubPictures state:", pictures);
+        setClubPictures(pictures);
 
       } catch (err) {
         console.error("[CasinoDetail fetch/parse Error] Failed to fetch or parse casino details:", err);
@@ -186,7 +281,7 @@ const CasinoDetail = () => {
 
     fetchCasinoDetails();
 
-  }, [id]); // Re-run effect if the correct parameter 'id' changes
+  }, [id, passedCountryCode]);
 
   if (isLoading) {
     return <CasinoDetailSkeleton />;
@@ -205,11 +300,13 @@ const CasinoDetail = () => {
                <AlertCircle className="h-4 w-4" />
               <AlertTitle>Failed to Load Casino Details</AlertTitle>
               <AlertDescription>
-                <p>There was an error fetching details for this casino.</p>
+                <p>There was an error fetching or processing details for this casino.</p>
                 <p className="text-sm text-muted-foreground mt-2">Error: {error}</p>
                 <div className="mt-4">
                    <Button variant="outline" size="sm" asChild>
-                     <Link to="/casinos">Back to Casinos</Link>
+                     <Link to={passedCountryCode ? `/casinos/${passedCountryCode}` : "/casinos"}>
+                       Back to Casinos{countryName ? ` in ${countryName}` : ''}
+                     </Link>
                    </Button>
                 </div>
               </AlertDescription>
@@ -222,8 +319,6 @@ const CasinoDetail = () => {
   }
 
   if (!casino) {
-    // This case should ideally be covered by the error state if fetch failed or ID not found
-    // But included as a fallback.
      return (
       <div className="min-h-screen flex flex-col">
          <Helmet>
@@ -233,9 +328,11 @@ const CasinoDetail = () => {
          <main className="flex-grow pt-16 flex items-center justify-center bg-background">
            <div className="text-center p-8">
              <h2 className="text-3xl font-bold mb-4">Casino Not Found</h2>
-             <p className="mb-6">The casino you are looking for does not exist or could not be loaded.</p>
+             <p className="mb-6">The casino details could not be loaded or the casino was not found.</p>
             <Button variant="outline" asChild>
-               <Link to="/casinos">Back to Casinos</Link>
+              <Link to={passedCountryCode ? `/casinos/${passedCountryCode}` : "/casinos"}>
+                 Back to Casinos{countryName ? ` in ${countryName}` : ''}
+               </Link>
             </Button>
            </div>
          </main>
@@ -244,9 +341,8 @@ const CasinoDetail = () => {
     );
   }
 
-  // --- Page Content Rendering ---
-  const pageTitle = `${casino.name} | ${countryName || casino.countryCode} | PokerList`;
-  const pageDescription = `Details for ${casino.name} poker room located in ${casino.city}, ${countryName || casino.countryCode}. Address: ${casino.address}.`;
+  const pageTitle = `${casino.name} | ${countryName || casino.city} | PokerList`;
+  const pageDescription = `Details, tournaments, and games for ${casino.name} poker room in ${casino.city}, ${countryName || ''}. Address: ${casino.address}.`;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -256,122 +352,219 @@ const CasinoDetail = () => {
       </Helmet>
       <Navbar />
       <main className="flex-grow pt-16 bg-background">
-        {/* Header Section */}
-        <div className="hero-gradient-casinos hero-lines-casinos py-16 md:py-20">
-          <div className="container mx-auto px-4 flex flex-col md:flex-row items-center gap-6 md:gap-8">
-            {/* Logo */}
-            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white/50 bg-muted flex-shrink-0 flex items-center justify-center shadow-lg">
-              {casino.logo ? (
-                 <img
-                  src={casino.logo}
-                  alt={`${casino.name} Logo`}
-                  className="w-full h-full object-contain" // Use contain to prevent distortion
-                  onError={(e) => { e.currentTarget.style.display = 'none'; /* Hide on error */ }}
-                />
-              ) : (
-                 <span className="text-muted-foreground text-sm">No Logo</span>
-              )}
-            </div>
-            {/* Title and Location */}
-            <div className="text-center md:text-left">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2">
-                {casino.name}
-              </h1>
-              <p className="text-lg md:text-xl text-primary-foreground/80 flex items-center justify-center md:justify-start gap-2">
-                <MapPin className="w-5 h-5 inline-block flex-shrink-0" />
-                {casino.city}, {countryName || casino.countryCode}
-              </p>
-            </div>
-          </div>
-        </div>
+        <div
+           className={cn(
+             "hero-gradient-casinos hero-lines-casinos py-16 md:py-20 relative bg-cover bg-center",
+             !casino.imgUrl && "bg-gray-800"
+           )}
+           style={casino.imgUrl ? { backgroundImage: `url(${casino.imgUrl})` } : {}}
+        >
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+             <div className="container mx-auto px-4 flex flex-col md:flex-row items-center gap-6 md:gap-8 relative z-10">
+               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white/50 bg-muted flex-shrink-0 flex items-center justify-center shadow-lg">
+                 {casino.logo ? (
+                    <img
+                     src={casino.logo}
+                     alt={`${casino.name} Logo`}
+                     className="w-full h-full object-contain"
+                     onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                   />
+                 ) : (
+                    <span className="text-muted-foreground text-sm p-2 text-center">No Logo</span>
+                 )}
+               </div>
+               <div className="text-center md:text-left">
+                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 drop-shadow-md">
+                   {casino.name}
+                 </h1>
+                 <p className="text-lg md:text-xl text-primary-foreground/80 flex items-center justify-center md:justify-start gap-2">
+                   <MapPin className="w-5 h-5 inline-block flex-shrink-0" />
+                   {casino.city}, {countryName || ''}
+                 </p>
+               </div>
+             </div>
+           </div>
 
-        {/* Details Section */}
         <section className="py-12 md:py-16">
-          <div className="container mx-auto px-4">
-            <Card className="overflow-hidden shadow-lg border-border bg-card">
+          <div className="container mx-auto px-4 space-y-12">
+             <Card className="overflow-hidden shadow-lg border-border bg-card">
               <CardHeader>
                 <CardTitle className="text-2xl font-semibold text-foreground">
                   Casino Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 text-card-foreground">
-                {/* Left Column */}
-                <div className="space-y-4">
-                  <div>
-                     <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2">
-                       <MapPin className="w-4 h-4" /> Address
-                     </h3>
-                     <p>{casino.address || 'N/A'}</p>
-                     <p>{casino.city}{countryName && `, ${countryName}`}</p>
-                  </div>
-                  {casino.contact && (
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2">
-                        <Phone className="w-4 h-4" /> Contact
-                      </h3>
-                      <a href={`tel:${casino.contact}`} className="hover:text-primary transition-colors">{casino.contact}</a>
-                    </div>
-                  )}
-                   {/* Optional: Display Map Link */}
-                   {casino.latitude && casino.longitude && (
-                     <div>
-                       <Button variant="outline" size="sm" asChild>
-                         <a
-                          href={`https://www.google.com/maps/search/?api=1&query=${casino.latitude},${casino.longitude}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2"
-                         >
-                           View on Map <ExternalLink className="w-3 h-3" />
-                         </a>
-                       </Button>
-                     </div>
-                   )}
-                </div>
-
-                {/* Right Column */}
+               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 text-card-foreground">
                  <div className="space-y-4">
-                   {casino.url && (
-                    <div>
+                    {casino.description && (
+                        <div>
+                            <h3 className="text-sm font-medium text-muted-foreground mb-1">Description</h3>
+                            <p className="whitespace-pre-wrap">{casino.description}</p>
+                        </div>
+                    )}
+                   <div>
                       <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2">
-                         <Globe className="w-4 h-4" /> Website
+                        <MapPin className="w-4 h-4" /> Address
                       </h3>
-                      <a
-                        href={casino.url.startsWith('http') ? casino.url : `http://${casino.url}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline break-all inline-flex items-center gap-1"
-                      >
-                        {casino.url} <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                      </a>
-                    </div>
-                   )}
-                   {/* Placeholder for other details like Size/Rank if needed */}
-                   {casino.size && (
+                      <p>{casino.address || 'N/A'}</p>
+                      <p>{casino.city}{countryName && `, ${countryName}`}</p>
+                   </div>
+                   {casino.contact && (
                      <div>
-                       <h3 className="text-sm font-medium text-muted-foreground mb-1">Size Indicator</h3>
-                       <p>{casino.size}</p>
-                     </div>
-                   )}
-                   {casino.rank && (
-                     <div>
-                       <h3 className="text-sm font-medium text-muted-foreground mb-1">Rank</h3>
-                       <p>{casino.rank !== "0" ? casino.rank : 'N/A'}</p>
+                       <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2">
+                         <Phone className="w-4 h-4" /> Contact
+                       </h3>
+                       <a href={`tel:${casino.contact}`} className="hover:text-primary transition-colors">{casino.contact}</a>
                      </div>
                    )}
                  </div>
 
+                  <div className="space-y-4">
+                    {casino.url && (
+                     <div>
+                       <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2">
+                          <Globe className="w-4 h-4" /> Website
+                       </h3>
+                       <a
+                         href={casino.url.startsWith('http') ? casino.url : `http://${casino.url}`}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="text-primary hover:underline break-all inline-flex items-center gap-1"
+                       >
+                         {casino.url} <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                       </a>
+                     </div>
+                    )}
+                    {casino.size && (
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground mb-1">Size Indicator</h3>
+                        <p>{casino.size}</p>
+                      </div>
+                    )}
+                    {casino.rank && casino.rank !== "0" && (
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground mb-1">Rank</h3>
+                        <p>{casino.rank}</p>
+                      </div>
+                    )}
+                     {casino.latitude && casino.longitude && (
+                       <div>
+                         <Button variant="outline" size="sm" asChild>
+                           <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${casino.latitude},${casino.longitude}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2"
+                           >
+                             View on Map <ExternalLink className="w-3 h-3" />
+                           </a>
+                         </Button>
+                       </div>
+                    )}
+                  </div>
+
+               </CardContent>
+            </Card>
+
+            <Card className="overflow-hidden shadow-lg border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-2xl font-semibold text-foreground">Live Tournaments</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {liveTournaments.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Tournament</TableHead>
+                          <TableHead className="text-right">Buy-in</TableHead>
+                           <TableHead className="text-right">Guarantee</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {liveTournaments.map((t) => (
+                          <TableRow key={t.id}>
+                            <TableCell className="whitespace-nowrap">{formatTournamentDate(t.startDateStr)}</TableCell>
+                            <TableCell className="font-medium">{t.title || 'N/A'}</TableCell>
+                             <TableCell className="text-right whitespace-nowrap">
+                               {t.buyin && t.buyin !== '0' ? `${t.currency || ''}${t.buyin}` : 'N/A'}
+                             </TableCell>
+                             <TableCell className="text-right whitespace-nowrap">
+                               {t.guaranteed && t.guaranteed !== '0' ? `${t.currency || ''}${t.guaranteed}` : '-'}
+                             </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-4">No live tournaments listed for this casino at the moment.</p>
+                )}
               </CardContent>
             </Card>
 
-            {/* Back Button */}
-             <div className="mt-12 text-center">
-               <Button variant="outline" asChild>
-                 <Link to={`/casinos/${casino.countryCode}`}>
-                   &larr; Back to Casinos in {countryName || casino.countryCode}
-                 </Link>
-               </Button>
-             </div>
+             <Card className="overflow-hidden shadow-lg border-border bg-card">
+               <CardHeader>
+                 <CardTitle className="text-2xl font-semibold text-foreground">Cash Games</CardTitle>
+               </CardHeader>
+               <CardContent>
+                 {cashGames.length > 0 ? (
+                   <div className="overflow-x-auto">
+                     <Table>
+                       <TableHeader>
+                         <TableRow>
+                           <TableHead>Game Type</TableHead>
+                           <TableHead>Stakes</TableHead>
+                           <TableHead>Players</TableHead>
+                         </TableRow>
+                       </TableHeader>
+                       <TableBody>
+                         {cashGames.map((g) => (
+                           <TableRow key={g.id}>
+                             <TableCell className="font-medium">{g.gametype}</TableCell>
+                             <TableCell>{`${g.currency || ''}${g.smallblind}/${g.currency || ''}${g.bigblind}`}</TableCell>
+                             <TableCell>{g.players || 'N/A'}</TableCell>
+                           </TableRow>
+                         ))}
+                       </TableBody>
+                     </Table>
+                   </div>
+                 ) : (
+                   <p className="text-muted-foreground text-center py-4">No cash games reported for this casino at the moment.</p>
+                 )}
+               </CardContent>
+             </Card>
+
+             {clubPictures.length > 0 && (
+                 <Card className="overflow-hidden shadow-lg border-border bg-card">
+                   <CardHeader>
+                     <CardTitle className="text-2xl font-semibold text-foreground">Gallery</CardTitle>
+                   </CardHeader>
+                   <CardContent>
+                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                       {clubPictures.map((pic, index) => (
+                         <a key={index} href={pic.href} target="_blank" rel="noopener noreferrer" className="block aspect-square overflow-hidden rounded-lg border hover:opacity-80 transition-opacity">
+                           <img
+                             src={pic.href}
+                             alt={`Casino Gallery Image ${index + 1}`}
+                             className="w-full h-full object-cover"
+                             loading="lazy"
+                             onError={(e) => { e.currentTarget.parentElement?.classList.add('hidden'); }}
+                           />
+                         </a>
+                       ))}
+                     </div>
+                   </CardContent>
+                 </Card>
+             )}
+
+            <div className="mt-12 text-center">
+              <Button variant="outline" asChild>
+                <Link to={passedCountryCode ? `/casinos/${passedCountryCode}` : "/casinos"}>
+                  &larr; Back to Casinos{countryName ? ` in ${countryName}` : ''}
+                </Link>
+              </Button>
+            </div>
 
           </div>
         </section>
