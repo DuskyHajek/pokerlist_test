@@ -1,10 +1,5 @@
 {
   "framework": "vite",
-  "functions": {
-    "api/**/*.php": {
-      "runtime": "vercel-php@0.7.3"
-    }
-  },
   "rewrites": [
     {
       "source": "/pokerlist-api",
@@ -14,5 +9,10 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/**/*.php": {
+      "runtime": "vercel-php@0.7.3"
+    }
+  }
 } 
