@@ -180,7 +180,7 @@ const Events = () => {
       <Navbar />
       <main className="flex-grow pt-16">
         {/* Breadcrumb Navigation */}
-        <div className="container mx-auto px-4 pt-2 pb-4">
+        <div className="container mx-auto px-4 pt-2 pb-4 hidden sm:block">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>

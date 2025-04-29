@@ -315,7 +315,7 @@ const FestivalDetail = () => {
       <Navbar />
       <main className="flex-grow container mx-auto px-4 py-12 pt-24">
         {/* Breadcrumb Navigation */}
-        <div className="pb-4">
+        <div className="pb-4 hidden sm:block">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>

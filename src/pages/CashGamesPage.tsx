@@ -6,6 +6,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import DownloadApp from "../components/DownloadApp";
 import { Link } from "react-router-dom";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 interface CashGame {
   id: string;
@@ -161,6 +169,20 @@ const CashGamesPage = () => {
       <Navbar />
 
       <main className="flex-grow pt-16">
+        {/* Breadcrumb Navigation - Hidden on mobile, visible on larger screens */}
+        <div className="container mx-auto px-4 pt-2 pb-4 hidden sm:block">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/">Home</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Cash Games</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
         <div className="hero-gradient-live py-16 md:py-24 text-center h-[360px] md:h-[280px]">
           <div className="container mx-auto px-4 flex flex-col items-center justify-center h-full">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 text-center animate-fade-in">
