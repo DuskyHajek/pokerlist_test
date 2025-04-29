@@ -46,11 +46,16 @@ const parsePokerClubsXml = (xmlString: string): Casino[] => {
 
     // Map raw attributes to the Casino interface structure
     if (casinoData['ID']) {
+      // Decode HTML entities for relevant fields
+      const decodedName = decodeHtmlEntities(casinoData['TITLE']);
+      const decodedAddress = decodeHtmlEntities(casinoData['ADDRESS']);
+      const decodedCity = decodeHtmlEntities(casinoData['CITY']);
+
       casinos.push({
         id: casinoData['ID'],
-        name: casinoData['TITLE'] || 'N/A',
+        name: decodedName || 'N/A',
         countryCode: casinoData['COUNTRY'] || '',
-        description: `${casinoData['ADDRESS'] || ''}, ${casinoData['CITY'] || ''}`.replace(/^, |, $/g, ''), // Combine Address and City
+        description: `${decodedAddress || ''}, ${decodedCity || ''}`.replace(/^, |, $/g, ''), // Combine Address and City
         logo: casinoData['LOGOURL'] || undefined, // Use undefined if not present
       });
     }
@@ -81,8 +86,22 @@ const normalizeText = (text: string): string => {
   if (!text) return '';
   return text
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+    .replace(/[̀-ͯ]/g, '') // Remove diacritics
     .toLowerCase();
+};
+
+// --- Helper function to decode HTML entities ---
+const decodeHtmlEntities = (text: string | undefined): string => {
+  if (!text) return '';
+  try {
+    // Use the browser's built-in capabilities to decode HTML entities
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(`<!doctype html><body>${text}</body>`, 'text/html');
+    return doc.body.textContent || '';
+  } catch (e) {
+    console.error("Error decoding HTML entities:", e);
+    return text; // Return original text if decoding fails
+  }
 };
 
 // --- Skeleton Component for Casino Card ---
@@ -173,12 +192,18 @@ const CasinosByCountry = () => {
           while ((attrMatch = attrRegex.exec(match[1])) !== null) {
             club[attrMatch[1]] = attrMatch[2];
           }
+
+          // Decode HTML entities before storing
+          const decodedName = decodeHtmlEntities(club['TITLE']);
+          const decodedAddress = decodeHtmlEntities(club['ADDRESS']);
+          const decodedCity = decodeHtmlEntities(club['CITY']);
+
           // Show all clubs returned by the API (including border clubs)
           clubs.push({
             id: club['ID'],
-            name: club['TITLE'] || 'N/A',
+            name: decodedName || 'N/A',
             countryCode: club['COUNTRY'],
-            description: `${club['ADDRESS'] || ''}, ${club['CITY'] || ''}`.replace(/^, |, $/g, ''),
+            description: `${decodedAddress || ''}, ${decodedCity || ''}`.replace(/^, |, $/g, ''),
             logo: club['LOGOURL'] || undefined,
           });
         }

@@ -696,14 +696,14 @@ const CasinoDetail = () => {
                                     <span
                                      className="text-xs font-semibold text-white px-2.5 sm:px-3 py-1 rounded-full flex items-center bg-pokerBlue"
                                     >
-                                     Buy-in: {tournament.buyin} {tournament.currency && <Euro className="w-3 h-3 ml-1" />}
+                                     Buy-in: {formatCurrency(tournament.currency)}{tournament.buyin}
                                     </span>
                                 )}
                                {tournament.guaranteed && tournament.guaranteed !== '0' && (
                                  <span
                                    className="text-xs font-semibold text-white px-3 py-1 rounded-full flex items-center bg-pokerPurple"
                                  >
-                                   {tournament.guaranteed} {tournament.currency && <Euro className="w-3 h-3 ml-0.5 mr-0.5" />} GTD
+                                   {formatCurrency(tournament.currency)}{tournament.guaranteed} GTD
                                  </span>
                                )}
                              </div>

@@ -27,6 +27,7 @@ interface Tournament {
   starttime: string;
   buyin: string; // Assuming buyin is a string like '$100+10'
   guaranteed?: string | number; // Added optional guarantee field
+  currency?: string; // Added currency field
   // Add other tournament fields if needed
   // Example: guarantee?: string; // Add if guarantee data becomes available
 }
@@ -55,6 +56,14 @@ const slugify = (text: string): string => {
     .replace(/-+$/, ''); // Trim - from end of text
 };
 */
+
+// Add this function near the top of the file, with other helper functions
+const formatCurrency = (currencyCode: string | undefined | null): string => {
+  if (!currencyCode) return ''; // Return empty if no code provided
+  if (currencyCode.toUpperCase() === 'EUR') return '€';
+  if (currencyCode.toUpperCase() === 'USD') return '$';
+  return currencyCode.toUpperCase(); // Return the code itself (uppercase) for others
+};
 
 // --- Loading Skeletons ---
 const DetailSkeleton = () => (
@@ -128,6 +137,7 @@ const FestivalDetail = () => {
                 starttime: item.starttime,
                 buyin: item.buyin,
                 guaranteed: item.guaranteed, // Pass guarantee from API item
+                currency: item.currency || '', // Extract currency, default to empty string if missing
                 // Add other relevant fields from 'item'
               });
             } else {
@@ -371,14 +381,14 @@ const FestivalDetail = () => {
                      <span
                       className="text-xs font-semibold text-white px-2.5 sm:px-3 py-1 rounded-full flex items-center bg-pokerBlue"
                      >
-                      Buy-in: {tournament.buyin} <Euro className="w-3 h-3 ml-1" />
+                      Buy-in: {formatCurrency(tournament.currency)}{tournament.buyin}
                      </span>
                     {/* Guarantee Pill - Display only if available */}
                     {tournament.guaranteed && (
                       <span
                         className="text-xs font-semibold text-white px-3 py-1 rounded-full flex items-center bg-pokerPurple"
                       >
-                        {tournament.guaranteed} <Euro className="w-3 h-3 ml-0.5 mr-0.5" /> GTD
+                        {formatCurrency(tournament.currency)}{tournament.guaranteed} GTD
                       </span>
                     )}
                   </div>
