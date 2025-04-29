@@ -1,47 +1,91 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Link } from "react-router-dom";
-import { Input } from "@/components/ui/input";
-import { Search } from 'lucide-react';
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
+// Countries array without hardcoded casinoCounts - we'll fetch the real counts
 const countries = [
-  { code: "AT", name: "Austria", flag: "https://flagcdn.com/at.svg" },
-  { code: "BE", name: "Belgium", flag: "https://flagcdn.com/be.svg" },
-  { code: "BR", name: "Brazil", flag: "https://flagcdn.com/br.svg" },
-  { code: "BG", name: "Bulgaria", flag: "https://flagcdn.com/bg.svg" },
-  { code: "HR", name: "Croatia", flag: "https://flagcdn.com/hr.svg" },
-  { code: "CZ", name: "Czech Republic", flag: "https://flagcdn.com/cz.svg" },
-  { code: "FR", name: "France", flag: "https://flagcdn.com/fr.svg" },
-  { code: "DE", name: "Germany", flag: "https://flagcdn.com/de.svg" },
-  { code: "GB", name: "Great Britain", flag: "https://flagcdn.com/gb.svg" },
-  { code: "GR", name: "Greece", flag: "https://flagcdn.com/gr.svg" },
-  { code: "HU", name: "Hungary", flag: "https://flagcdn.com/hu.svg" },
-  { code: "IT", name: "Italy", flag: "https://flagcdn.com/it.svg" },
-  { code: "MT", name: "Malta", flag: "https://flagcdn.com/mt.svg" },
-  { code: "NL", name: "Netherlands", flag: "https://flagcdn.com/nl.svg" },
-  { code: "PL", name: "Poland", flag: "https://flagcdn.com/pl.svg" },
-  { code: "PT", name: "Portugal", flag: "https://flagcdn.com/pt.svg" },
-  { code: "SK", name: "Slovakia", flag: "https://flagcdn.com/sk.svg" },
-  { code: "ES", name: "Spain", flag: "https://flagcdn.com/es.svg" },
-  { code: "CH", name: "Switzerland", flag: "https://flagcdn.com/ch.svg" },
+  { code: "AT", name: "Austria", flag: "https://flagcdn.com/at.svg", casinoCount: 0 },
+  { code: "BE", name: "Belgium", flag: "https://flagcdn.com/be.svg", casinoCount: 0 },
+  { code: "BR", name: "Brazil", flag: "https://flagcdn.com/br.svg", casinoCount: 0 },
+  { code: "BG", name: "Bulgaria", flag: "https://flagcdn.com/bg.svg", casinoCount: 0 },
+  { code: "HR", name: "Croatia", flag: "https://flagcdn.com/hr.svg", casinoCount: 0 },
+  { code: "CZ", name: "Czech Republic", flag: "https://flagcdn.com/cz.svg", casinoCount: 0 },
+  { code: "FR", name: "France", flag: "https://flagcdn.com/fr.svg", casinoCount: 0 },
+  { code: "DE", name: "Germany", flag: "https://flagcdn.com/de.svg", casinoCount: 0 },
+  { code: "GB", name: "Great Britain", flag: "https://flagcdn.com/gb.svg", casinoCount: 0 },
+  { code: "GR", name: "Greece", flag: "https://flagcdn.com/gr.svg", casinoCount: 0 },
+  { code: "HU", name: "Hungary", flag: "https://flagcdn.com/hu.svg", casinoCount: 0 },
+  { code: "IT", name: "Italy", flag: "https://flagcdn.com/it.svg", casinoCount: 0 },
+  { code: "MT", name: "Malta", flag: "https://flagcdn.com/mt.svg", casinoCount: 0 },
+  { code: "NL", name: "Netherlands", flag: "https://flagcdn.com/nl.svg", casinoCount: 0 },
+  { code: "PL", name: "Poland", flag: "https://flagcdn.com/pl.svg", casinoCount: 0 },
+  { code: "PT", name: "Portugal", flag: "https://flagcdn.com/pt.svg", casinoCount: 0 },
+  { code: "SK", name: "Slovakia", flag: "https://flagcdn.com/sk.svg", casinoCount: 0 },
+  { code: "ES", name: "Spain", flag: "https://flagcdn.com/es.svg", casinoCount: 0 },
+  { code: "CH", name: "Switzerland", flag: "https://flagcdn.com/ch.svg", casinoCount: 0 },
 ];
 
 const Casinos = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [countriesWithCounts, setCountriesWithCounts] = useState(countries);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredCountries = countries.filter(country => 
+  useEffect(() => {
+    const fetchCasinoCounts = async () => {
+      setIsLoading(true);
+      const updatedCountries = [...countries];
+      
+      // Fetch casino counts for each country
+      try {
+        // Process countries sequentially to avoid overwhelming the API
+        for (const country of updatedCountries) {
+          try {
+            const response = await fetch('/pokerlist-api', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: `country=${encodeURIComponent(country.code)}`
+            });
+            
+            if (response.ok) {
+              const xml = await response.text();
+              // Count the number of POKERCLUB tags to get the casino count
+              const matches = xml.match(/<POKERCLUB\s+([^>]+)\/>/g);
+              country.casinoCount = matches ? matches.length : 0;
+            }
+          } catch (error) {
+            console.error(`Error fetching data for ${country.name}:`, error);
+            // Keep the count at 0 in case of error
+          }
+        }
+        setCountriesWithCounts(updatedCountries);
+      } catch (error) {
+        console.error("Error fetching casino counts:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCasinoCounts();
+  }, []);
+
+  const filteredCountries = countriesWithCounts.filter(country => 
     country.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="min-h-screen flex flex-col">
       <Helmet>
-        <title>Poker Rooms & Casinos Worldwide | PokerList</title>
-        <meta name="description" content="Browse poker rooms and casinos by country. Find the best venues for poker tournaments and cash games near you." />
+        <title>Poker Rooms & Casinos Database | Find Poker Venues Worldwide | PokerList</title>
+        <meta name="description" content="Browse our comprehensive database of poker rooms and casinos across 19+ countries. Find poker tournaments, cash games, and venue details for your next poker destination." />
+        <meta name="keywords" content="poker rooms, casinos worldwide, poker venues, international poker, casino database, find poker games" />
+        <meta property="og:title" content="Poker Rooms & Casinos Database | PokerList" />
+        <meta property="og:description" content="Find poker venues, tournaments and cash games across the globe with our comprehensive casino database." />
+        <meta property="og:type" content="website" />
+        <link rel="canonical" href="https://pokerlist.com/casinos" />
       </Helmet>
       <Navbar />
       <main className="flex-grow pt-16">
@@ -51,55 +95,49 @@ const Casinos = () => {
               Poker Casinos Worldwide
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-center mb-8 animate-fade-in">
-              Discover top poker rooms and casinos across the globe.
+              Discover over 450+ poker rooms and casinos across the globe
             </p>
           </div>
         </div>
         <section className="py-16 md:py-24 bg-background">
           <div className="container mx-auto px-4">
-            <div className="mb-12 max-w-xl mx-auto relative">
-              <Input 
-                type="text"
-                placeholder="Search for a country..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-3 text-lg bg-card border-border focus:border-primary" 
-              />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-            </div>
-            {filteredCountries.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 max-w-6xl mx-auto">
-                {filteredCountries.map((country, index) => (
-                  <Link
-                    key={country.code}
-                    to={`/casinos/${country.code}`}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-w-6xl mx-auto">
+              {filteredCountries.map((country, index) => (
+                <Link
+                  key={country.code}
+                  to={`/casinos/${country.code}`}
+                  aria-label={`View casinos in ${country.name}`}
+                >
+                  <Card
                     className={cn(
-                      "block group p-4 flex flex-col items-center justify-center hover:scale-105 transition-all duration-300 animate-fade-in", 
-                      "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
+                      "card-highlight h-full overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-primary/30 animate-fade-in"
                     )}
                     style={{
-                      animationDelay: `${index * 100}ms`
+                      animationDelay: `${index * 50}ms`
                     }}
                   >
-                    <img
-                      src={country.flag}
-                      alt={`${country.name} Flag`}
-                      className="w-16 h-12 object-cover rounded shadow bg-muted mb-3 transform group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <span className="font-medium text-center group-hover:text-primary transition-colors">
-                      {country.name}
-                    </span>
-                    <span className="text-sm text-muted-foreground mt-1 group-hover:text-primary/80 transition-colors">
-                      View Casinos
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center text-muted-foreground py-16">
-                No countries found matching "{searchTerm}".
-              </div>
-            )}
+                    <div className="aspect-video relative overflow-hidden bg-pokerDarkBlue/20">
+                      <img
+                        src={country.flag}
+                        alt={`${country.name} Flag`}
+                        className="w-full h-full object-cover transform hover:scale-110 transition-transform duration-500"
+                      />
+                    </div>
+                    <CardContent className="p-3">
+                      <h3 className="font-medium text-base mb-1">{country.name}</h3>
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <img 
+                          src="/icons/casinos.png" 
+                          alt="Casino" 
+                          className="h-3 w-3 mr-1 flex-shrink-0 object-contain" 
+                        />
+                        <span>{isLoading ? '...' : country.casinoCount}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
       </main>
