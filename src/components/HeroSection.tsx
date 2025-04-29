@@ -66,11 +66,11 @@ const HeroSection = () => {
               </a>
               
               <a 
-                href="#tournaments" 
+                href="/casinos" 
                 className="border border-white/20 hover:border-primary/80 hover:text-primary px-6 py-3 rounded-md text-white font-semibold text-lg inline-flex items-center justify-center transition-all duration-300 active:scale-95"
               >
                 <LayoutGrid className="mr-2" size={20} />
-                Browse Events
+                Browse Casinos
               </a>
             </div>
             
@@ -79,15 +79,15 @@ const HeroSection = () => {
               style={{ animationDelay: '0.5s' }}
             >
               <Card className="card-highlight p-6 text-center">
-                <span className="text-3xl font-bold bg-gradient-to-r from-pokerPurple to-pokerBlue bg-clip-text text-transparent">1000+</span>
+                <span className="text-3xl font-bold bg-gradient-to-r from-pokerPurple to-pokerBlue bg-clip-text text-transparent">14000+</span>
                 <span className="text-muted-foreground block mt-1 text-sm">Tournaments</span>
               </Card>
               <Card className="card-highlight p-6 text-center">
                 <span className="text-3xl font-bold bg-gradient-to-r from-pokerPurple to-pokerBlue bg-clip-text text-transparent">500+</span>
-                <span className="text-muted-foreground block mt-1 text-sm">Casinos</span>
+                <span className="text-muted-foreground block mt-1 text-sm">Poker Rooms</span>
               </Card>
               <Card className="card-highlight p-6 text-center">
-                <span className="text-3xl font-bold bg-gradient-to-r from-pokerPurple to-pokerBlue bg-clip-text text-transparent">25+</span>
+                <span className="text-3xl font-bold bg-gradient-to-r from-pokerPurple to-pokerBlue bg-clip-text text-transparent">18</span>
                 <span className="text-muted-foreground block mt-1 text-sm">Countries</span>
               </Card>
             </div>
