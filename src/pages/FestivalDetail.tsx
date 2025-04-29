@@ -381,14 +381,14 @@ const FestivalDetail = () => {
                      <span
                       className="text-xs font-semibold text-white px-2.5 sm:px-3 py-1 rounded-full flex items-center bg-pokerBlue"
                      >
-                      Buy-in: {formatCurrency(tournament.currency)}{tournament.buyin}
+                      Buy-in: {tournament.buyin}{formatCurrency(tournament.currency)}
                      </span>
                     {/* Guarantee Pill - Display only if available */}
                     {tournament.guaranteed && (
                       <span
                         className="text-xs font-semibold text-white px-3 py-1 rounded-full flex items-center bg-pokerPurple"
                       >
-                        {formatCurrency(tournament.currency)}{tournament.guaranteed} GTD
+                        {tournament.guaranteed}{formatCurrency(tournament.currency)} GTD
                       </span>
                     )}
                   </div>
