@@ -11,14 +11,11 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <div className="col-span-1">
             <div className="mb-3">
-              <div className="inline-block relative bg-white/10 rounded-lg p-2 shadow-lg backdrop-blur-sm border border-white/20 overflow-hidden hover:bg-white/15 transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent opacity-50"></div>
-                <img
-                  src="/PL_logo.png"
-                  alt="PokerList Logo"
-                  className="h-9 relative z-10"
-                />
-              </div>
+              <img
+                src="/PL_logo.png"
+                alt="PokerList Logo"
+                className="h-8"
+              />
             </div>
             <p className="text-muted-foreground text-sm mb-5">
               Your ultimate companion for finding poker tournaments and cash games. 

@@ -10,12 +10,11 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center group">
-            <div className="relative bg-white/10 rounded-lg p-2.5 shadow-lg backdrop-blur-sm border border-white/20 overflow-hidden hover:bg-white/15 transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent opacity-50"></div>
+            <div className="relative rounded-lg p-1.5 bg-white/5 hover:bg-white/10 transition-all duration-300 ease-in-out">
               <img 
                 src="/PL_logo.png" 
                 alt="PokerList Logo" 
-                className="h-12 relative z-10 transition-transform duration-300 group-hover:scale-110" 
+                className="h-10 relative z-10 transition-transform duration-300 group-hover:scale-105 opacity-90 group-hover:opacity-100" 
               />
             </div>
           </Link>
