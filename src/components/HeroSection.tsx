@@ -95,12 +95,19 @@ const HeroSection = () => {
               <img
                 src="/PL_screen1.jpeg"
                 alt="PokerList Mobile App - Events"
+                loading="lazy"
+                width="240"
+                height="480"
+                fetchPriority="high"
                 className="absolute w-[130px] h-auto sm:w-[220px] md:w-[240px] object-contain rounded-xl shadow-xl z-10 transform translate-x-2 sm:translate-x-6 rotate-[8deg] hover:rotate-[10deg] hover:scale-105 transition-transform duration-300"
               />
               {/* Image 2 - Now behind, rotated left */}
               <img
                 src="/PL_screen2.jpeg"
                 alt="PokerList Mobile App - Live Tournaments Preview"
+                loading="lazy"
+                width="240"
+                height="480"
                 className="absolute w-[130px] h-auto sm:w-[220px] md:w-[240px] object-contain rounded-xl shadow-lg z-0 transform -translate-x-2 sm:-translate-x-6 -rotate-[8deg] hover:rotate-[-10deg] hover:scale-105 transition-transform duration-300"
               />
             </div>

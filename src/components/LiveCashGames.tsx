@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 // Remove Tournament import if no longer needed or replace with CashGame type
 // import { Tournament } from "../data/mockData"; 
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, AlertCircle, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Update CashGame interface to match API response
 interface CashGame {
@@ -68,31 +69,32 @@ const LiveCashGames = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchCashGames = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response = await fetch('/api/cash_games.php');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        if (Array.isArray(data)) {
-            setCashGames(data.slice(0, 6));
-        } else {
-             console.warn("Received data is not an array:", data);
-             setCashGames([]);
-        }
-      } catch (e) {
-        console.error("Failed to fetch cash games:", e);
-        setError("Failed to load cash games. Please try again later.");
-        setCashGames([]);
-      } finally {
-        setIsLoading(false);
+  const fetchCashGames = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/cash_games.php');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    };
+      const data = await response.json();
+      if (Array.isArray(data)) {
+          setCashGames(data.slice(0, 6));
+      } else {
+           console.warn("Received data is not an array:", data);
+           setCashGames([]);
+           setError("Invalid data format received from server.");
+      }
+    } catch (e) {
+      console.error("Failed to fetch cash games:", e);
+      setError("Failed to load cash games. Please try again later.");
+      setCashGames([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchCashGames();
   }, []);
 
@@ -123,9 +125,32 @@ const LiveCashGames = () => {
               </div>
             ))
           ) : error ? (
-             <div className="text-center text-red-500 py-8">{error}</div>
+             <Alert variant="destructive" className="my-4">
+                <AlertCircle className="h-4 w-4 mr-2" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription className="flex flex-col">
+                  <p>{error}</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={fetchCashGames} 
+                    className="mt-3 w-fit flex items-center gap-1.5"
+                  >
+                    <RefreshCw size={14} />
+                    Retry
+                  </Button>
+                </AlertDescription>
+             </Alert>
           ) : cashGames.length === 0 ? (
-             <div className="text-center text-muted-foreground py-8">No live cash games currently available.</div>
+             <div className="text-center py-8">
+                <Card className="p-6 mx-auto max-w-md">
+                  <p className="text-muted-foreground mb-4">No live cash games currently available.</p>
+                  <Button onClick={fetchCashGames} variant="outline" size="sm" className="mx-auto flex items-center gap-1.5">
+                    <RefreshCw size={14} />
+                    Refresh
+                  </Button>
+                </Card>
+             </div>
           ) : (
             cashGames.map((game) => {
               const currencySymbol = formatCurrency(game.currency);
