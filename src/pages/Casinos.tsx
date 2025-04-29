@@ -204,7 +204,7 @@ const Casinos = () => {
                           alt="Casino" 
                           className="h-3 w-3 mr-1 flex-shrink-0 object-contain" 
                         />
-                        <span>{isLoading ? '...' : country.casinoCount}</span>
+                        <span>{isLoading ? '...' : `${country.casinoCount} Poker Rooms`}</span>
                       </div>
                     </CardContent>
                   </Card>
