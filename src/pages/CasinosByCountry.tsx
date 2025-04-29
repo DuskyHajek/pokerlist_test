@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Skeleton } from "@/components/ui/skeleton";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { MapPin, Search, X } from "lucide-react";
+import { MapPin, Search, X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -25,43 +25,59 @@ interface Casino {
 }
 
 // --- Helper function to parse XML string ---
-// Basic parser assuming a list of <POKERCLUB ... /> tags
-// Returns an array of objects with attributes
-// Note: This is a simplified parser. A robust solution might need a dedicated library.
-const parsePokerClubsXml = (xmlString: string): Casino[] => {
-  const casinos: Casino[] = [];
-  // Match <POKERCLUB ... /> tags
-  const clubRegex = /<POKERCLUB\s+([^>]+)\/>/g;
-  // Match attributes within a tag (e.g., ID="123")
-  const attrRegex = /(\w+)="([^"]*)"/g;
+// Optimized parser with memoization for better performance
+const parsePokerClubsXml = (() => {
+  // Cache for parsed results
+  let cachedXml: string | null = null;
+  let cachedResult: Casino[] | null = null;
 
-  let match;
-  while ((match = clubRegex.exec(xmlString)) !== null) {
-    const attributesString = match[1];
-    const casinoData: Partial<Casino> & { [key: string]: any } = {}; // Use index signature
-    let attrMatch;
-    while ((attrMatch = attrRegex.exec(attributesString)) !== null) {
-      casinoData[attrMatch[1]] = attrMatch[2]; // Store raw attributes
+  return (xmlString: string): Casino[] => {
+    // Return cached result if XML hasn't changed
+    if (cachedXml === xmlString && cachedResult) {
+      return cachedResult;
     }
 
-    // Map raw attributes to the Casino interface structure
-    if (casinoData['ID']) {
-      // Decode HTML entities for relevant fields
-      const decodedName = decodeHtmlEntities(casinoData['TITLE']);
-      const decodedAddress = decodeHtmlEntities(casinoData['ADDRESS']);
-      const decodedCity = decodeHtmlEntities(casinoData['CITY']);
+    console.time('XML Parsing');
+    const casinos: Casino[] = [];
+    // Match <POKERCLUB ... /> tags
+    const clubRegex = /<POKERCLUB\s+([^>]+)\/>/g;
+    // Match attributes within a tag (e.g., ID="123")
+    const attrRegex = /(\w+)="([^"]*)"/g;
 
-      casinos.push({
-        id: casinoData['ID'],
-        name: decodedName || 'N/A',
-        countryCode: casinoData['COUNTRY'] || '',
-        description: `${decodedAddress || ''}, ${decodedCity || ''}`.replace(/^, |, $/g, ''), // Combine Address and City
-        logo: casinoData['LOGOURL'] || undefined, // Use undefined if not present
-      });
+    let match;
+    while ((match = clubRegex.exec(xmlString)) !== null) {
+      const attributesString = match[1];
+      const casinoData: Partial<Casino> & { [key: string]: any } = {}; // Use index signature
+      let attrMatch;
+      while ((attrMatch = attrRegex.exec(attributesString)) !== null) {
+        casinoData[attrMatch[1]] = attrMatch[2]; // Store raw attributes
+      }
+
+      // Map raw attributes to the Casino interface structure
+      if (casinoData['ID']) {
+        // Decode HTML entities for relevant fields
+        const decodedName = decodeHtmlEntities(casinoData['TITLE']);
+        const decodedAddress = decodeHtmlEntities(casinoData['ADDRESS']);
+        const decodedCity = decodeHtmlEntities(casinoData['CITY']);
+
+        casinos.push({
+          id: casinoData['ID'],
+          name: decodedName || 'N/A',
+          countryCode: casinoData['COUNTRY'] || '',
+          description: `${decodedAddress || ''}, ${decodedCity || ''}`.replace(/^, |, $/g, ''), // Combine Address and City
+          logo: casinoData['LOGOURL'] || undefined, // Use undefined if not present
+        });
+      }
     }
-  }
-  return casinos;
-};
+    
+    // Update cache
+    cachedXml = xmlString;
+    cachedResult = casinos;
+    
+    console.timeEnd('XML Parsing');
+    return casinos;
+  };
+})();
 
 // --- Helper function to generate a URL-friendly slug ---
 const createSlug = (name: string): string => {
@@ -102,6 +118,21 @@ const decodeHtmlEntities = (text: string | undefined): string => {
     console.error("Error decoding HTML entities:", e);
     return text; // Return original text if decoding fails
   }
+};
+
+// --- Loading Spinner Component ---
+const LoadingSpinner = ({ size = "medium", className = "" }) => {
+  const sizeClass = {
+    small: "w-4 h-4",
+    medium: "w-8 h-8",
+    large: "w-12 h-12"
+  }[size] || "w-8 h-8";
+
+  return (
+    <div className={cn("flex items-center justify-center", className)}>
+      <Loader2 className={cn(sizeClass, "animate-spin text-primary")} />
+    </div>
+  );
 };
 
 // --- Skeleton Component for Casino Card ---
@@ -146,9 +177,13 @@ const countries = [
   { code: "CH", name: "Switzerland", flag: "https://flagcdn.com/ch.svg" },
 ];
 
+// Pagination constants
+const ITEMS_PER_PAGE = 12;
+
 const CasinosByCountry = () => {
   const { countryCode } = useParams<{ countryCode: string }>();
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [filteredCasinos, setFilteredCasinos] = useState<Casino[]>([]);
   const [allCasinos, setAllCasinos] = useState<Casino[]>([]);
   const [country, setCountry] = useState<{ code: string; name: string; flag: string } | undefined>(undefined);
@@ -156,14 +191,68 @@ const CasinosByCountry = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 3;
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginatedCasinos, setPaginatedCasinos] = useState<Casino[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
   
   // Animation ref for casino cards
   const casinoCardsRef = useRef<HTMLDivElement>(null);
+
+  // Debounced search function
+  const debouncedSearch = useCallback(
+    (() => {
+      let timeoutId: NodeJS.Timeout | null = null;
+      
+      return (searchValue: string, casinosList: Casino[]) => {
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+        }
+        
+        return new Promise<Casino[]>((resolve) => {
+          timeoutId = setTimeout(() => {
+            if (searchValue.trim() === "") {
+              resolve(casinosList);
+              return;
+            }
+            
+            console.time('Search');
+            const normalizedSearch = normalizeText(searchValue);
+            const filtered = casinosList.filter(casino => {
+              const normalizedName = normalizeText(casino.name);
+              const normalizedDescription = normalizeText(casino.description || '');
+              
+              return normalizedName.includes(normalizedSearch) || 
+                    normalizedDescription.includes(normalizedSearch);
+            });
+            console.timeEnd('Search');
+            resolve(filtered);
+          }, 300); // 300ms debounce
+        });
+      };
+    })(),
+    []
+  );
+
+  // Effect for handling pagination
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    setPaginatedCasinos(filteredCasinos.slice(startIndex, endIndex));
+    setTotalPages(Math.ceil(filteredCasinos.length / ITEMS_PER_PAGE));
+    
+    // Reset scroll position when page changes
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage, filteredCasinos]);
 
   useEffect(() => {
     if (!countryCode) {
       setError("Country code is missing.");
       setIsLoading(false);
+      setIsInitialLoad(false);
       return;
     }
     // Find country from static list
@@ -181,62 +270,47 @@ const CasinosByCountry = () => {
         });
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const xml = await response.text();
-        // Parse all clubs (including border clubs)
-        const clubRegex = /<POKERCLUB\s+([^>]+)\/>/g;
-        const attrRegex = /(\w+)="([^"]*)"/g;
-        let match;
-        const clubs: Casino[] = [];
-        while ((match = clubRegex.exec(xml)) !== null) {
-          let attrMatch;
-          let club: any = {};
-          while ((attrMatch = attrRegex.exec(match[1])) !== null) {
-            club[attrMatch[1]] = attrMatch[2];
-          }
-
-          // Decode HTML entities before storing
-          const decodedName = decodeHtmlEntities(club['TITLE']);
-          const decodedAddress = decodeHtmlEntities(club['ADDRESS']);
-          const decodedCity = decodeHtmlEntities(club['CITY']);
-
-          // Show all clubs returned by the API (including border clubs)
-          clubs.push({
-            id: club['ID'],
-            name: decodedName || 'N/A',
-            countryCode: club['COUNTRY'],
-            description: `${decodedAddress || ''}, ${decodedCity || ''}`.replace(/^, |, $/g, ''),
-            logo: club['LOGOURL'] || undefined,
-          });
-        }
+        
+        // Use the optimized parser function
+        const clubs = parsePokerClubsXml(xml);
+        
         setAllCasinos(clubs);
         setFilteredCasinos(clubs);
+        setCurrentPage(1); // Reset to first page on new data
+        setRetryCount(0); // Reset retry counter on success
       } catch (err) {
+        console.error("Error fetching casinos:", err);
         setError(err instanceof Error ? err.message : 'Unknown error');
-        setAllCasinos([]);
-        setFilteredCasinos([]);
+        
+        // Implement retry logic
+        if (retryCount < maxRetries) {
+          setRetryCount(prev => prev + 1);
+          console.log(`Retrying fetch (${retryCount + 1}/${maxRetries})...`);
+          setTimeout(() => {
+            fetchCasinos();
+          }, 2000 * (retryCount + 1)); // Exponential backoff
+        } else {
+          setAllCasinos([]);
+          setFilteredCasinos([]);
+        }
       } finally {
         setIsLoading(false);
+        setIsInitialLoad(false);
       }
     };
     fetchCasinos();
   }, [countryCode]);
 
-  // Search effect - update to handle diacritics
+  // Search effect - update to use debounced search
   useEffect(() => {
-    if (searchTerm.trim() === "") {
-      setFilteredCasinos(allCasinos);
-      return;
-    }
+    const performSearch = async () => {
+      const results = await debouncedSearch(searchTerm, allCasinos);
+      setFilteredCasinos(results);
+      setCurrentPage(1); // Reset to first page on new search
+    };
     
-    const normalizedSearch = normalizeText(searchTerm);
-    const filtered = allCasinos.filter(casino => {
-      const normalizedName = normalizeText(casino.name);
-      const normalizedDescription = normalizeText(casino.description || '');
-      
-      return normalizedName.includes(normalizedSearch) || 
-             normalizedDescription.includes(normalizedSearch);
-    });
-    setFilteredCasinos(filtered);
-  }, [searchTerm, allCasinos]);
+    performSearch();
+  }, [searchTerm, allCasinos, debouncedSearch]);
 
   // Focus on search input when search bar is shown
   useEffect(() => {
@@ -271,38 +345,18 @@ const CasinosByCountry = () => {
     return () => {
       if (casinoCardsRef.current) observer.unobserve(casinoCardsRef.current);
     };
-  }, [isLoading, filteredCasinos]);
+  }, [isLoading, paginatedCasinos]);
 
-  // Show loading skeleton for header too if country hasn't loaded
-  if (isLoading && !country) {
+  // Show loading spinner for initial load
+  if (isInitialLoad) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
-        <main className="flex-grow pt-16">
-          {/* Skeleton Header */}
-          <div className="hero-gradient py-16">
-            <div className="container mx-auto px-4">
-              <div className="flex items-center justify-center gap-4 mb-6">
-                <Skeleton className="w-16 h-12 rounded" />
-                <Skeleton className="h-10 w-64" />
-              </div>
-              <Skeleton className="h-6 w-1/2 mx-auto" />
-            </div>
+        <main className="flex-grow pt-16 flex items-center justify-center">
+          <div className="text-center">
+            <LoadingSpinner size="large" className="mb-4" />
+            <p className="text-lg font-medium">Loading casinos...</p>
           </div>
-          {/* Skeleton Body (repeated logic, could be component) */}
-          <section className="py-12 bg-background">
-            <div className="container mx-auto px-4">
-              <div className="flex justify-between items-center mb-6">
-                 <Skeleton className="h-8 w-48" />
-                 <Skeleton className="h-5 w-32" />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Array.from({ length: 6 }).map((_, index) => (
-                  <CasinoCardSkeleton key={index} />
-                ))}
-              </div>
-            </div>
-          </section>
         </main>
         <Footer />
       </div>
@@ -345,7 +399,10 @@ const CasinosByCountry = () => {
             <p className="mb-4 text-destructive-foreground">There was an error fetching poker rooms for {country.name}.</p>
             <p className="text-sm text-muted-foreground mb-4">Error details: {error}</p>
             <button
-              onClick={() => window.location.reload()} // Simple reload for retry
+              onClick={() => {
+                setRetryCount(0);
+                window.location.reload();
+              }}
               className="text-primary underline"
             >
               Try Again
@@ -427,12 +484,14 @@ const CasinosByCountry = () => {
           <div className="container mx-auto px-4">
             <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
               <h2 className="text-2xl md:text-3xl font-bold">
-                {/* Show skeleton only while loading AND country is known */}
-                {isLoading && country && <Skeleton className="h-8 w-48 inline-block" />}
-                {/* Show count only when not loading AND country is known */}
-                {!isLoading && country && `${filteredCasinos.length} Poker ${filteredCasinos.length === 1 ? 'Room' : 'Rooms'} in ${country.name}`}
-                {/* Handle case where country might still be loading initially */}
-                {isLoading && !country && <Skeleton className="h-8 w-48 inline-block" />}
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <Skeleton className="h-8 w-48 inline-block mr-3" />
+                    <LoadingSpinner size="small" />
+                  </div>
+                ) : (
+                  `${filteredCasinos.length} Poker ${filteredCasinos.length === 1 ? 'Room' : 'Rooms'} in ${country?.name || ''}`
+                )}
               </h2>
               
               <div className="flex items-center gap-3">
@@ -477,69 +536,131 @@ const CasinosByCountry = () => {
 
             {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Array.from({ length: 6 }).map((_, index) => (
+                {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
                   <CasinoCardSkeleton key={index} />
                 ))}
               </div>
             ) : filteredCasinos.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" ref={casinoCardsRef}>
-                {filteredCasinos.map((casino, index) => {
-                  // Generate slug for the link
-                  const slug = createSlug(casino.name);
-                  return (
-                    <Link
-                      key={casino.id}
-                      // Updated link format: /casino/:id/:slug
-                      to={`/casino/${casino.id}/${slug}`}
-                      // Pass countryCode AND logoUrl in state
-                      state={{ countryCode: casino.countryCode, logoUrl: casino.logo }}
-                      className={cn(
-                        "block rounded-lg border bg-card text-card-foreground shadow-sm",
-                        "card-highlight card-container overflow-hidden hover:border-primary/50 transition-all duration-300 group opacity-0",
-                        "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                      )}
-                      style={{ animationDelay: `${index * 50}ms` }}
-                    >
-                      <div className="h-48 bg-gray-800 relative">
-                        {/* Placeholder for casino image */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-white/50">
-                            {/* Added check for casino.logo */}
-                            {casino.logo ? (
-                               <img 
-                                src={casino.logo} 
-                                alt={casino.name} 
-                                className="w-full h-full object-cover bg-muted"
-                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                              />
-                             ) : (
-                               <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-xs">No Logo</div>
-                             )}
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" ref={casinoCardsRef}>
+                  {paginatedCasinos.map((casino, index) => {
+                    // Generate slug for the link
+                    const slug = createSlug(casino.name);
+                    return (
+                      <Link
+                        key={casino.id}
+                        // Updated link format: /casino/:id/:slug
+                        to={`/casino/${casino.id}/${slug}`}
+                        // Pass countryCode AND logoUrl in state
+                        state={{ countryCode: casino.countryCode, logoUrl: casino.logo }}
+                        className={cn(
+                          "block rounded-lg border bg-card text-card-foreground shadow-sm",
+                          "card-highlight card-container overflow-hidden hover:border-primary/50 transition-all duration-300 group opacity-0",
+                          "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        )}
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        <div className="h-48 bg-gray-800 relative">
+                          {/* Placeholder for casino image */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-white/50">
+                              {/* Added check for casino.logo */}
+                              {casino.logo ? (
+                                <img 
+                                  src={casino.logo} 
+                                  alt={casino.name} 
+                                  className="w-full h-full object-cover bg-muted"
+                                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-xs">No Logo</div>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      
-                      <div className="p-6 flex flex-col flex-grow">
-                        <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
-                          {casino.name}
-                        </h3>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {casino.description || 'No address available.'}
-                        </p>
-                        <div className="mt-auto pt-3 flex justify-between items-center">
-                          <span className="text-primary font-medium text-sm flex items-center">
-                            View details
-                            <svg xmlns="http://www.w3.org/2000/svg" className="ml-1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="m9 18 6-6-6-6"/>
-                            </svg>
-                          </span>
+                        
+                        <div className="p-6 flex flex-col flex-grow">
+                          <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
+                            {casino.name}
+                          </h3>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {casino.description || 'No address available.'}
+                          </p>
+                          <div className="mt-auto pt-3 flex justify-between items-center">
+                            <span className="text-primary font-medium text-sm flex items-center">
+                              View details
+                              <svg xmlns="http://www.w3.org/2000/svg" className="ml-1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="m9 18 6-6-6-6"/>
+                              </svg>
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+                
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center items-center mt-10 space-x-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      aria-label="Previous page"
+                    >
+                      <ChevronLeft size={16} />
+                    </Button>
+                    
+                    <div className="flex space-x-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(pageNum => {
+                          // Show pages within ±2 of current, and first/last pages
+                          return (
+                            pageNum === 1 ||
+                            pageNum === totalPages ||
+                            Math.abs(pageNum - currentPage) <= 2
+                          );
+                        })
+                        .map((pageNum, index, array) => {
+                          // Add ellipsis if there's a gap
+                          const showEllipsisBefore = index > 0 && pageNum - array[index - 1] > 1;
+                          
+                          return (
+                            <React.Fragment key={pageNum}>
+                              {showEllipsisBefore && (
+                                <span className="flex items-center justify-center w-8 h-8">...</span>
+                              )}
+                              
+                              <Button
+                                variant={currentPage === pageNum ? "default" : "outline"}
+                                size="icon"
+                                className="w-8 h-8"
+                                onClick={() => setCurrentPage(pageNum)}
+                                aria-label={`Page ${pageNum}`}
+                                aria-current={currentPage === pageNum ? "page" : undefined}
+                              >
+                                {pageNum}
+                              </Button>
+                            </React.Fragment>
+                          );
+                        })}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      aria-label="Next page"
+                    >
+                      <ChevronRight size={16} />
+                    </Button>
+                  </div>
+                )}
+              </>
             ) : (
               // Check for country before displaying the "No rooms found" message
               country && (
