@@ -91,17 +91,17 @@ const HeroSection = () => {
           <div className="order-2 md:order-2 flex justify-center md:justify-end items-center animate-fade-in mt-4 md:mt-0" style={{ animationDelay: '0.6s' }}>
             {/* Made base size even smaller */}
             <div className="relative flex justify-center items-center w-[200px] h-[200px] sm:w-[320px] md:w-[350px] sm:h-[320px] md:h-[350px]">
-              {/* Image 1 - Adjusted mobile size */}
+              {/* Image 1 - Now on top, rotated right */}
               <img
                 src="/PL_screen1.jpeg"
                 alt="PokerList Mobile App - Events"
-                className="absolute w-[130px] h-auto sm:w-[220px] md:w-[240px] object-contain rounded-xl shadow-lg z-0 transform -translate-x-2 sm:-translate-x-6 -rotate-[8deg] hover:rotate-[-10deg] hover:scale-105 transition-transform duration-300"
+                className="absolute w-[130px] h-auto sm:w-[220px] md:w-[240px] object-contain rounded-xl shadow-xl z-10 transform translate-x-2 sm:translate-x-6 rotate-[8deg] hover:rotate-[10deg] hover:scale-105 transition-transform duration-300"
               />
-              {/* Image 2 - Adjusted mobile size */}
+              {/* Image 2 - Now behind, rotated left */}
               <img
                 src="/PL_screen2.jpeg"
                 alt="PokerList Mobile App - Live Tournaments Preview"
-                className="absolute w-[130px] h-auto sm:w-[220px] md:w-[240px] object-contain rounded-xl shadow-xl z-10 transform translate-x-2 sm:translate-x-6 rotate-[8deg] hover:rotate-[10deg] hover:scale-105 transition-transform duration-300"
+                className="absolute w-[130px] h-auto sm:w-[220px] md:w-[240px] object-contain rounded-xl shadow-lg z-0 transform -translate-x-2 sm:-translate-x-6 -rotate-[8deg] hover:rotate-[-10deg] hover:scale-105 transition-transform duration-300"
               />
             </div>
           </div>
