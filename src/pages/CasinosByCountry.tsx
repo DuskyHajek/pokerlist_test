@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Skeleton } from "@/components/ui/skeleton";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { MapPin } from "lucide-react";
+import { MapPin, Search, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 // --- Define the structure for a casino based on API and component needs ---
 interface Casino {
@@ -74,6 +76,15 @@ const createSlug = (name: string): string => {
   return slug;
 };
 
+// --- Helper function to normalize text for search (remove diacritics) ---
+const normalizeText = (text: string): string => {
+  if (!text) return '';
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+    .toLowerCase();
+};
+
 // --- Skeleton Component for Casino Card ---
 const CasinoCardSkeleton = () => (
   <Card className="card-highlight overflow-hidden animate-pulse">
@@ -120,8 +131,15 @@ const CasinosByCountry = () => {
   const { countryCode } = useParams<{ countryCode: string }>();
   const [isLoading, setIsLoading] = useState(true);
   const [filteredCasinos, setFilteredCasinos] = useState<Casino[]>([]);
+  const [allCasinos, setAllCasinos] = useState<Casino[]>([]);
   const [country, setCountry] = useState<{ code: string; name: string; flag: string } | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  
+  // Animation ref for casino cards
+  const casinoCardsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!countryCode) {
@@ -164,9 +182,11 @@ const CasinosByCountry = () => {
             logo: club['LOGOURL'] || undefined,
           });
         }
+        setAllCasinos(clubs);
         setFilteredCasinos(clubs);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
+        setAllCasinos([]);
         setFilteredCasinos([]);
       } finally {
         setIsLoading(false);
@@ -174,6 +194,59 @@ const CasinosByCountry = () => {
     };
     fetchCasinos();
   }, [countryCode]);
+
+  // Search effect - update to handle diacritics
+  useEffect(() => {
+    if (searchTerm.trim() === "") {
+      setFilteredCasinos(allCasinos);
+      return;
+    }
+    
+    const normalizedSearch = normalizeText(searchTerm);
+    const filtered = allCasinos.filter(casino => {
+      const normalizedName = normalizeText(casino.name);
+      const normalizedDescription = normalizeText(casino.description || '');
+      
+      return normalizedName.includes(normalizedSearch) || 
+             normalizedDescription.includes(normalizedSearch);
+    });
+    setFilteredCasinos(filtered);
+  }, [searchTerm, allCasinos]);
+
+  // Focus on search input when search bar is shown
+  useEffect(() => {
+    if (showSearch && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [showSearch]);
+
+  // Add intersection observer for animation
+  useEffect(() => {
+    if (!casinoCardsRef.current || isLoading) return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const cards = entry.target.querySelectorAll('.card-container');
+            cards.forEach((card, index) => {
+              setTimeout(() => {
+                card.classList.add('animate-fade-in');
+              }, index * 50); // Stagger animation
+            });
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    
+    observer.observe(casinoCardsRef.current);
+    
+    return () => {
+      if (casinoCardsRef.current) observer.unobserve(casinoCardsRef.current);
+    };
+  }, [isLoading, filteredCasinos]);
 
   // Show loading skeleton for header too if country hasn't loaded
   if (isLoading && !country) {
@@ -217,6 +290,7 @@ const CasinosByCountry = () => {
       <div className="min-h-screen flex flex-col">
         <Helmet>
           <title>Country Not Found | PokerList</title>
+          <meta name="description" content="We couldn't find information for this country code. Please try another country or browse all available countries." />
         </Helmet>
         <Navbar />
         <main className="flex-grow pt-16 flex items-center justify-center">
@@ -237,6 +311,7 @@ const CasinosByCountry = () => {
       <div className="min-h-screen flex flex-col">
         <Helmet>
           <title>Error Loading Casinos | {country.name} | PokerList</title>
+          <meta name="description" content={`We encountered an issue loading poker rooms in ${country.name}. Please try again later or browse other countries.`} />
         </Helmet>
         <Navbar />
         <main className="flex-grow pt-16 flex items-center justify-center">
@@ -270,24 +345,63 @@ const CasinosByCountry = () => {
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
+        <meta name="keywords" content={`poker rooms ${country?.name}, casinos ${country?.name}, poker venues, find poker games, ${country?.name} poker, live poker ${country?.name}`} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:type" content="website" />
+        <link rel="canonical" href={`https://pokerlist.com/casinos/${countryCode}`} />
+        {/* JSON-LD structured data for local business listing */}
+        <script type="application/ld+json">
+          {`
+            {
+              "@context": "https://schema.org",
+              "@type": "ItemList",
+              "itemListElement": [
+                ${filteredCasinos.slice(0, 10).map((casino, index) => `
+                  {
+                    "@type": "ListItem",
+                    "position": ${index + 1},
+                    "item": {
+                      "@type": "LocalBusiness",
+                      "name": "${casino.name}",
+                      "address": "${casino.description?.replace(/"/g, '\\"') || ''}",
+                      "image": "${casino.logo || ''}",
+                      "url": "https://pokerlist.com/casino/${casino.id}/${createSlug(casino.name)}"
+                    }
+                  }
+                `).join(',')}
+              ]
+            }
+          `}
+        </script>
       </Helmet>
       <Navbar />
       <main className="flex-grow pt-16">
         <div className="hero-gradient-casinos hero-lines-casinos py-16 md:py-24">
-          <div className="container mx-auto px-4 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold">
+          <div className="container mx-auto px-4 text-center relative">
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">
               Poker Rooms in {country?.name || '...'}
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-center">
               Explore casinos and poker rooms in {country?.name || 'this country'}.
             </p>
+            
+            {country && (
+              <div className="absolute right-8 bottom-0 w-16 h-12 overflow-hidden rounded-md shadow-lg border-2 border-white/20 animate-fade-in hidden md:block">
+                <img 
+                  src={country.flag} 
+                  alt={`${country.name} Flag`} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
           </div>
         </div>
 
         <section className="py-12 bg-background">
           <div className="container mx-auto px-4">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-3xl font-bold">
+            <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
+              <h2 className="text-2xl md:text-3xl font-bold">
                 {/* Show skeleton only while loading AND country is known */}
                 {isLoading && country && <Skeleton className="h-8 w-48 inline-block" />}
                 {/* Show count only when not loading AND country is known */}
@@ -295,9 +409,45 @@ const CasinosByCountry = () => {
                 {/* Handle case where country might still be loading initially */}
                 {isLoading && !country && <Skeleton className="h-8 w-48 inline-block" />}
               </h2>
-              <Link to="/casinos" className="text-primary hover:underline">
-                View All Countries
-              </Link>
+              
+              <div className="flex items-center gap-3">
+                {showSearch ? (
+                  <div className="relative flex items-center">
+                    <Input
+                      ref={searchInputRef}
+                      type="text"
+                      placeholder="Search by name or location..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-3 pr-10 py-2 w-56 md:w-64 rounded-md border border-border bg-background"
+                    />
+                    <Button
+                      onClick={() => {
+                        setSearchTerm("");
+                        setShowSearch(false);
+                      }}
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1"
+                    >
+                      <X size={18} />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    onClick={() => setShowSearch(true)}
+                    variant="outline"
+                    size="icon"
+                    className="mr-2"
+                    aria-label="Search casinos"
+                  >
+                    <Search size={18} />
+                  </Button>
+                )}
+                <Link to="/casinos" className="text-primary hover:underline whitespace-nowrap">
+                  View All Countries
+                </Link>
+              </div>
             </div>
 
             {isLoading ? (
@@ -307,8 +457,8 @@ const CasinosByCountry = () => {
                 ))}
               </div>
             ) : filteredCasinos.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredCasinos.map(casino => {
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" ref={casinoCardsRef}>
+                {filteredCasinos.map((casino, index) => {
                   // Generate slug for the link
                   const slug = createSlug(casino.name);
                   return (
@@ -320,9 +470,10 @@ const CasinosByCountry = () => {
                       state={{ countryCode: casino.countryCode, logoUrl: casino.logo }}
                       className={cn(
                         "block rounded-lg border bg-card text-card-foreground shadow-sm",
-                        "card-highlight overflow-hidden hover:border-primary/50 transition-all duration-300 group",
+                        "card-highlight card-container overflow-hidden hover:border-primary/50 transition-all duration-300 group opacity-0",
                         "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       )}
+                      style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <div className="h-48 bg-gray-800 relative">
                         {/* Placeholder for casino image */}
@@ -368,13 +519,34 @@ const CasinosByCountry = () => {
               // Check for country before displaying the "No rooms found" message
               country && (
                 <div className="text-center p-8">
-                  <p className="text-xl mb-4">No poker rooms found in {country.name}</p>
-                  <p className="text-muted-foreground mb-6">
-                    We couldn't find any poker rooms in this country via the API. Please check another country or check back later.
-                  </p>
-                  <Link to="/casinos" className="text-primary underline">
-                    View All Countries
-                  </Link>
+                  {searchTerm ? (
+                    <div>
+                      <p className="text-xl mb-4">No results found for "{searchTerm}"</p>
+                      <p className="text-muted-foreground mb-6">
+                        Try a different search term or clear your search.
+                      </p>
+                      <Button
+                        onClick={() => {
+                          setSearchTerm("");
+                          setShowSearch(false);
+                        }}
+                        variant="outline"
+                        className="mr-4"
+                      >
+                        Clear Search
+                      </Button>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-xl mb-4">No poker rooms found in {country.name}</p>
+                      <p className="text-muted-foreground mb-6">
+                        We couldn't find any poker rooms in this country via the API. Please check another country or check back later.
+                      </p>
+                      <Link to="/casinos" className="text-primary underline">
+                        View All Countries
+                      </Link>
+                    </div>
+                  )}
                 </div>
               )
             )}
