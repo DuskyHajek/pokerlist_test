@@ -12,6 +12,15 @@ import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from 'date-fns';
 import DownloadApp from "../components/DownloadApp";
+import { slugify } from "@/lib/utils";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 // --- Updated Casino Interface ---
 interface Casino {
@@ -396,6 +405,65 @@ const CasinoDetail = () => {
 
   const pageTitle = `${casino.name} | ${countryName || casino.city} | PokerList`;
   const pageDescription = `Details, tournaments, and games for ${casino.name} poker room in ${casino.city}, ${countryName || ''}. Address: ${casino.address}.`;
+  const pageKeywords = `poker, casino, poker room, ${casino.name}, ${casino.city}, ${countryName}, live poker, cash games, tournaments, ${casino.name} poker, ${casino.name} casino, ${countryName} poker, ${countryName} casino`;
+  const canonicalUrl = `https://pokerlist.com/casino/${casino.id}/${slugify(casino.name)}`;
+  const ogImage = casino.logo || casino.imgUrl || "/opengraph-default.png";
+
+  // JSON-LD Structured Data for LocalBusiness
+  const localBusinessJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": casino.name,
+    "image": ogImage,
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": casino.address,
+      "addressLocality": casino.city,
+      "addressCountry": countryName || ""
+    },
+    "url": canonicalUrl,
+    ...(casino.contact ? { "telephone": casino.contact } : {}),
+    ...(casino.description ? { "description": casino.description } : {}),
+    ...(casino.latitude && casino.longitude ? {
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": casino.latitude,
+        "longitude": casino.longitude
+      }
+    } : {})
+  };
+
+  // JSON-LD Structured Data for BreadcrumbList
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://pokerlist.com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Casinos",
+        "item": "https://pokerlist.com/casinos"
+      },
+      ...(countryName ? [{
+        "@type": "ListItem",
+        "position": 3,
+        "name": countryName,
+        "item": `https://pokerlist.com/casinos/${passedCountryCode}`
+      }] : []),
+      {
+        "@type": "ListItem",
+        "position": countryName ? 4 : 3,
+        "name": casino.name,
+        "item": canonicalUrl
+      }
+    ]
+  };
 
   const displayedTournaments = showAllTournaments
     ? liveTournaments
@@ -406,9 +474,48 @@ const CasinoDetail = () => {
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
+        <meta name="keywords" content={pageKeywords} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" content={ogImage} />
+        <link rel="canonical" href={canonicalUrl} />
+        <script type="application/ld+json">{JSON.stringify(localBusinessJsonLd)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbJsonLd)}</script>
       </Helmet>
       <Navbar />
       <main className="flex-grow pt-16 bg-background">
+        {/* Breadcrumb Navigation */}
+        <div className="container mx-auto px-4 pt-2 pb-4">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/">Home</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/casinos">Casinos</BreadcrumbLink>
+              </BreadcrumbItem>
+              {countryName && passedCountryCode && (
+                <>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbLink href={`/casinos/${passedCountryCode}`}>{countryName}</BreadcrumbLink>
+                  </BreadcrumbItem>
+                </>
+              )}
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{casino.name}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
         <div
            className={cn(
              "hero-gradient-casinos hero-lines-casinos py-16 md:py-20 relative bg-cover bg-center",

@@ -5,6 +5,14 @@ import Footer from "../components/Footer";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 // Countries array without hardcoded casinoCounts - we'll fetch the real counts
 const countries = [
@@ -76,19 +84,84 @@ const Casinos = () => {
     country.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // SEO: Dynamic meta tags and structured data
+  const pageTitle = "Poker Rooms & Casinos Database | Find Poker Venues Worldwide | PokerList";
+  const pageDescription = "Browse our comprehensive database of poker rooms and casinos across 19+ countries. Find poker tournaments, cash games, and venue details for your next poker destination.";
+  const pageKeywords = "poker rooms, casinos worldwide, poker venues, international poker, casino database, find poker games, pokerlist";
+  const canonicalUrl = "https://pokerlist.com/casinos";
+  const ogImage = "/opengraph-default.png";
+
+  // JSON-LD Structured Data for ItemList (countries)
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": countriesWithCounts.map((country, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "item": {
+        "@type": "Country",
+        "name": country.name,
+        "url": `/casinos/${country.code}`,
+        "image": country.flag
+      }
+    }))
+  };
+
+  // JSON-LD Structured Data for BreadcrumbList
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://pokerlist.com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Casinos",
+        "item": canonicalUrl
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Helmet>
-        <title>Poker Rooms & Casinos Database | Find Poker Venues Worldwide | PokerList</title>
-        <meta name="description" content="Browse our comprehensive database of poker rooms and casinos across 19+ countries. Find poker tournaments, cash games, and venue details for your next poker destination." />
-        <meta name="keywords" content="poker rooms, casinos worldwide, poker venues, international poker, casino database, find poker games" />
-        <meta property="og:title" content="Poker Rooms & Casinos Database | PokerList" />
-        <meta property="og:description" content="Find poker venues, tournaments and cash games across the globe with our comprehensive casino database." />
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <meta name="keywords" content={pageKeywords} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:image" content={ogImage} />
         <meta property="og:type" content="website" />
-        <link rel="canonical" href="https://pokerlist.com/casinos" />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" content={ogImage} />
+        <link rel="canonical" href={canonicalUrl} />
+        <script type="application/ld+json">{JSON.stringify(itemListJsonLd)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbJsonLd)}</script>
       </Helmet>
       <Navbar />
       <main className="flex-grow pt-16">
+        {/* Breadcrumb Navigation */}
+        <div className="container mx-auto px-4 pt-2 pb-4">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/">Home</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Casinos</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
         <div className="hero-gradient-casinos py-16 md:py-24 text-center h-[360px] md:h-[280px]">
           <div className="container mx-auto px-4 flex flex-col items-center justify-center h-full">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 text-center animate-fade-in">

@@ -10,6 +10,14 @@ import { Card } from "@/components/ui/card"; // Import Card
 import DownloadApp from '../components/DownloadApp'; // Import DownloadApp
 import OtherFestivalsTable from '../components/OtherFestivalsTable'; // Import the new table component
 import { slugify } from "@/lib/utils"; // Import slugify from utils
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 // Define an interface for the Festival object (including tournaments)
 interface Tournament {
@@ -219,14 +227,101 @@ const FestivalDetail = () => {
     ? festival.tournaments
     : festival.tournaments.slice(0, 10);
 
+  // SEO: Dynamic meta tags and structured data
+  const pageTitle = `${festival.clubname} | Poker Festival | PokerList`;
+  const pageDescription = `Schedule, details, and tournaments for the ${festival.clubname} poker festival in ${festival.club_city}.`;
+  const pageKeywords = `poker, festival, poker festival, ${festival.clubname}, ${festival.club_city}, live poker, poker events, tournaments, ${festival.clubname} poker, ${festival.clubname} festival`;
+  const canonicalUrl = `https://pokerlist.com/festival/${festival.clubid}/${slugify(festival.clubname)}`;
+  const ogImage = festival.club_imgurl || festival.club_logourl || "/opengraph-default.png";
+
+  // JSON-LD Structured Data for Event
+  const eventJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    "name": festival.clubname,
+    "image": ogImage,
+    "startDate": festival.tournaments[0]?.startdate || "",
+    "endDate": festival.tournaments[festival.tournaments.length - 1]?.startdate || "",
+    "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+    "eventStatus": "https://schema.org/EventScheduled",
+    "location": {
+      "@type": "Place",
+      "name": festival.clubname,
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": festival.club_city,
+        "addressCountry": ""
+      }
+    },
+    "description": festival.club_description,
+    "url": canonicalUrl
+  };
+
+  // JSON-LD Structured Data for BreadcrumbList
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://pokerlist.com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Events",
+        "item": "https://pokerlist.com/events"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": festival.clubname,
+        "item": canonicalUrl
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Helmet>
-        <title>{`${festival.clubname} | PokerList`}</title>
-        <meta name="description" content={`Schedule and details for the ${festival.clubname} poker festival.`} />
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <meta name="keywords" content={pageKeywords} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" content={ogImage} />
+        <link rel="canonical" href={canonicalUrl} />
+        <script type="application/ld+json">{JSON.stringify(eventJsonLd)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbJsonLd)}</script>
       </Helmet>
       <Navbar />
       <main className="flex-grow container mx-auto px-4 py-12 pt-24">
+        {/* Breadcrumb Navigation */}
+        <div className="pb-4">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/">Home</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/events">Events</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{festival.clubname}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
         {/* --- Festival Header --- */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 items-start">
           {/* Image on the left */}

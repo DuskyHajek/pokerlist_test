@@ -7,6 +7,14 @@ import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { cn, slugify } from "@/lib/utils";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 // --- Skeleton Component for Event Card ---
 const EventCardSkeleton = () => (
@@ -101,14 +109,90 @@ const Events = () => {
       };
   }, []); // Empty dependency array ensures this runs only once on mount
 
+  // SEO: Dynamic meta tags and structured data
+  const pageTitle = "Upcoming Poker Events & Tournaments | PokerList";
+  const pageDescription = "Find major poker tournaments and festival series worldwide. Browse upcoming events by date, location, and buy-in.";
+  const pageKeywords = "poker, events, poker events, poker tournaments, live poker, poker festivals, poker series, poker schedule, poker calendar, pokerlist";
+  const canonicalUrl = "https://pokerlist.com/events";
+  const ogImage = "/opengraph-default.png";
+
+  // JSON-LD Structured Data for ItemList (events/festivals)
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": events.map((festival, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "item": {
+        "@type": "Event",
+        "name": festival.clubname,
+        "url": `/festival/${festival.clubid}/${slugify(festival.clubname)}`,
+        "startDate": festival.tournaments[0]?.startdate || "",
+        "location": {
+          "@type": "Place",
+          "name": festival.clubname,
+          "address": festival.club_city
+        },
+        "image": festival.club_imgurl || festival.club_logourl || ogImage
+      }
+    }))
+  };
+
+  // JSON-LD Structured Data for BreadcrumbList
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://pokerlist.com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Events",
+        "item": canonicalUrl
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Helmet>
-        <title>Upcoming Poker Events & Tournaments | PokerList</title>
-        <meta name="description" content="Find major poker tournaments and festival series worldwide. Browse upcoming events by date, location, and buy-in." />
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <meta name="keywords" content={pageKeywords} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" content={ogImage} />
+        <link rel="canonical" href={canonicalUrl} />
+        <script type="application/ld+json">{JSON.stringify(itemListJsonLd)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbJsonLd)}</script>
       </Helmet>
       <Navbar />
       <main className="flex-grow pt-16">
+        {/* Breadcrumb Navigation */}
+        <div className="container mx-auto px-4 pt-2 pb-4">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/">Home</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Events</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
         <div className="hero-gradient-events py-16 md:py-24 text-center h-[360px] md:h-[280px]">
           <div className="container mx-auto px-4 flex flex-col items-center justify-center h-full">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 text-center animate-fade-in">

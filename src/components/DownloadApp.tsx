@@ -68,7 +68,7 @@ const DownloadApp = () => {
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-t from-pokerRed/20 to-transparent rounded-3xl"></div>
               <img 
-                src="/lovable-uploads/689dfef7-edcf-42aa-bde4-0a45734c3ee5.png" 
+                src="/opengraph-default.png" 
                 alt="PokerList Mobile App" 
                 className="w-full max-w-[280px] mx-auto animate-float relative z-10 rounded-2xl shadow-2xl" 
               />

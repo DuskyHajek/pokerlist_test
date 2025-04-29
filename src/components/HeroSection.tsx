@@ -97,7 +97,7 @@ const HeroSection = () => {
             <div className="relative">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-pokerPurple to-pokerBlue rounded-3xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
               <img 
-                src="/lovable-uploads/a94bc721-c2d6-44e8-92eb-31eb297cd5f6.png" 
+                src="/opengraph-default.png" 
                 alt="PokerList Mobile App" 
                 className="w-full max-w-[280px] mx-auto animate-float relative z-10 rounded-2xl shadow-2xl" 
               />
