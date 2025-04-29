@@ -160,7 +160,7 @@ const getFlagUrl = (code: string) => `https://flagcdn.com/${code.toLowerCase()}.
 const formatCurrency = (currencyCode: string) => {
   if (currencyCode === 'EUR') return '€';
   if (currencyCode === 'USD') return '$';
-  return currencyCode;
+  return currencyCode.toUpperCase(); // Return the code itself (uppercase) for others
 };
 
 const CasinoDetail = () => {
@@ -696,14 +696,14 @@ const CasinoDetail = () => {
                                     <span
                                      className="text-xs font-semibold text-white px-2.5 sm:px-3 py-1 rounded-full flex items-center bg-pokerBlue"
                                     >
-                                     Buy-in: {formatCurrency(tournament.currency)}{tournament.buyin}
+                                     Buy-in: {tournament.buyin}{formatCurrency(tournament.currency)}
                                     </span>
                                 )}
                                {tournament.guaranteed && tournament.guaranteed !== '0' && (
                                  <span
                                    className="text-xs font-semibold text-white px-3 py-1 rounded-full flex items-center bg-pokerPurple"
                                  >
-                                   {formatCurrency(tournament.currency)}{tournament.guaranteed} GTD
+                                   {tournament.guaranteed}{formatCurrency(tournament.currency)} GTD
                                  </span>
                                )}
                              </div>
