@@ -9,15 +9,15 @@ const Navbar = () => {
     <header className="fixed w-full top-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2 group">
-            <img 
-              src="/lovable-uploads/c94440e7-a2f7-4833-9fc9-bbf34d1beb89.png" 
-              alt="PokerList Logo" 
-              className="h-8 transition-transform duration-300 group-hover:scale-110" 
-            />
-            <span className="text-xl font-bold text-white group-hover:text-primary transition-colors">
-              PokerList
-            </span>
+          <Link to="/" className="flex items-center group">
+            <div className="relative bg-white/10 rounded-lg p-2.5 shadow-lg backdrop-blur-sm border border-white/20 overflow-hidden hover:bg-white/15 transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent opacity-50"></div>
+              <img 
+                src="/PL_logo.png" 
+                alt="PokerList Logo" 
+                className="h-12 relative z-10 transition-transform duration-300 group-hover:scale-110" 
+              />
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
