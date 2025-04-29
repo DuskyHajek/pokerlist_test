@@ -64,15 +64,23 @@ const DownloadApp = () => {
             </div>
           </div>
           
-          <div className="flex justify-center mt-8 md:mt-0">
-            <div className="relative">
+          <div className="flex justify-center items-center mt-8 md:mt-0">
+            <div className="relative w-[300px] h-[350px]">
               <div className="absolute inset-0 bg-gradient-to-t from-pokerRed/20 to-transparent rounded-3xl"></div>
+
               <img 
-                src="/opengraph-default.png" 
-                alt="PokerList Mobile App" 
-                className="w-full max-w-[280px] mx-auto animate-float relative z-10 rounded-2xl shadow-2xl" 
+                src="/PL_screen1.jpeg" 
+                alt="PokerList Mobile App - Events Preview" 
+                className="absolute top-[10px] left-[-5px] w-[200px] h-auto object-contain rounded-xl shadow-md opacity-60 transform rotate-[-10deg] transition-all duration-300"
               />
-              <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 w-72 h-20 bg-pokerRed/20 blur-2xl rounded-full"></div>
+              <img 
+                src="/PL_screen2.jpeg" 
+                alt="PokerList Mobile App - Live Tournaments" 
+                className="absolute bottom-[10px] right-[-5px] w-[240px] h-auto object-contain animate-float z-10 rounded-xl shadow-xl hover:scale-105 transition-transform duration-300"
+                style={{ animationDelay: '0.2s' }}
+              />
+              
+              <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 w-72 h-20 bg-pokerRed/20 blur-2xl rounded-full z-0"></div>
             </div>
           </div>
         </div>

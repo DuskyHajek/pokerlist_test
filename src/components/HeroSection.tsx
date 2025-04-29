@@ -93,15 +93,19 @@ const HeroSection = () => {
             </div>
           </div>
 
-          <div className="md:pl-8 flex justify-center animate-fade-in" style={{ animationDelay: '0.6s' }}>
-            <div className="relative">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-pokerPurple to-pokerBlue rounded-3xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
-              <img 
-                src="/opengraph-default.png" 
-                alt="PokerList Mobile App" 
-                className="w-full max-w-[280px] mx-auto animate-float relative z-10 rounded-2xl shadow-2xl" 
+          <div className="md:pl-8 flex justify-center items-center animate-fade-in" style={{ animationDelay: '0.6s' }}>
+            <div className="relative w-[300px] h-[350px]">
+              <img
+                src="/PL_screen2.jpeg"
+                alt="PokerList Mobile App - Live Tournaments Preview"
+                className="absolute top-[-10px] right-[-15px] w-[200px] h-auto object-contain rounded-xl shadow-md opacity-50 transform rotate-[10deg]"
               />
-              <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 w-72 h-20 bg-gradient-to-r from-pokerPurple to-pokerBlue opacity-20 blur-2xl rounded-full"></div>
+              <img
+                src="/PL_screen1.jpeg"
+                alt="PokerList Mobile App - Events"
+                className="absolute bottom-0 left-0 w-[240px] h-auto object-contain animate-float z-10 rounded-xl shadow-xl hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute bottom-[-15px] left-1/2 transform -translate-x-1/2 w-[80%] h-16 bg-gradient-to-t from-black/30 via-black/10 to-transparent opacity-60 blur-xl rounded-full"></div>
             </div>
           </div>
         </div>
