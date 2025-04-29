@@ -35,9 +35,7 @@ const Navbar = () => {
               <img 
                 src="/PL_logo.png" 
                 alt="PokerList Logo" 
-                width="40"
-                height="40"
-                className="h-8 sm:h-10 relative z-10 transition-transform duration-300 group-hover:scale-105 opacity-90 group-hover:opacity-100" 
+                className="h-10 w-auto object-contain relative z-10 transition-transform duration-300 group-hover:scale-105 opacity-90 group-hover:opacity-100" 
               />
             </div>
           </Link>
