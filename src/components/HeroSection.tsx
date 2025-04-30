@@ -35,7 +35,7 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <div className="hero-gradient min-h-[85vh] sm:min-h-[85vh] pt-16 sm:pt-20 pb-10 sm:pb-16 flex flex-col justify-start relative overflow-hidden">
+    <div className="hero-gradient min-h-[65vh] sm:min-h-[65vh] pt-10 sm:pt-12 pb-8 sm:pb-10 flex flex-col justify-start relative overflow-hidden">
       {/* --- Animated Background Blobs --- */}
       <div className="bg-blob bg-pokerPurple w-40 h-40 sm:w-96 sm:h-96 absolute top-[-20px] left-[-20px] sm:top-[-50px] sm:left-[-100px]" style={{ animationDelay: '0s' }}></div>
       <div className="bg-blob bg-pokerBlue w-48 h-48 sm:w-[500px] sm:h-[500px] absolute bottom-[-40px] right-[-40px] sm:bottom-[-150px] sm:right-[-150px]" style={{ animationDelay: '5s' }}></div>
@@ -62,7 +62,7 @@ const HeroSection = () => {
             
             {/* Stats Cards */}
             <div 
-              className="mt-4 sm:mt-6 grid grid-cols-3 gap-2 sm:gap-4 animate-fade-in mb-6 sm:mb-8 md:mb-0"
+              className="mt-4 sm:mt-6 grid grid-cols-3 gap-2 sm:gap-4 animate-fade-in mb-4 sm:mb-6 md:mb-0"
               style={{ animationDelay: '0.5s' }}
             >
               <Card className="card-highlight p-3 sm:p-6 text-center">
@@ -81,7 +81,7 @@ const HeroSection = () => {
 
             {/* Buttons */}
             <div 
-              className="order-3 md:order-3 flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8 animate-fade-in justify-center md:justify-start mb-8 sm:mb-0"
+              className="order-3 md:order-3 flex flex-col sm:flex-row gap-3 sm:gap-4 mt-4 sm:mt-6 animate-fade-in justify-center md:justify-start mb-8 md:mb-0"
               style={{ animationDelay: '0.4s' }}
             >
               {/* Download App Button with Dropdown */}
@@ -138,7 +138,7 @@ const HeroSection = () => {
           </div>
 
           {/* Image Section - Order 2, now with improved mobile spacing */}
-          <div className="order-2 md:order-2 flex justify-center md:justify-end items-center animate-fade-in mt-2 md:mt-0" style={{ animationDelay: '0.6s' }}>
+          <div className="order-2 md:order-2 flex justify-center md:justify-end items-center animate-fade-in mt-0 md:mt-8" style={{ animationDelay: '0.6s' }}>
             <div className="relative flex justify-center items-center w-[220px] h-[240px] sm:w-[320px] md:w-[350px] sm:h-[320px] md:h-[350px]">
               {/* Single Image with shadow and hover effect */}
               <img
