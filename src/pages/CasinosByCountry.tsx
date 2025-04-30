@@ -561,21 +561,22 @@ const CasinosByCountry = () => {
                         )}
                         style={{ animationDelay: `${index * 50}ms` }}
                       >
-                        <div className="h-48 bg-gray-800 relative">
-                          {/* Placeholder for casino image */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-white/50">
+                        {/* Use a gradient background and make logo larger */}
+                        <div className="h-48 bg-gradient-to-br from-slate-900 to-slate-800 relative">
+                          {/* Removed inner gradient overlay div */}
+                          <div className="absolute inset-0 flex items-center justify-center p-4"> {/* Added padding */}
+                            {/* Increased logo size */}
+                            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white/50 bg-muted">
                               {/* Added check for casino.logo */}
                               {casino.logo ? (
-                                <img 
+                                <img
                                   src={casino.logo} 
                                   alt={casino.name} 
                                   className="w-full h-full object-cover bg-muted"
                                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                                 />
                               ) : (
-                                <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-xs">No Logo</div>
+                                <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">No Logo</div>
                               )}
                             </div>
                           </div>
@@ -585,8 +586,10 @@ const CasinosByCountry = () => {
                           <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
                             {casino.name}
                           </h3>
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {casino.description || 'No address available.'}
+                          {/* Add MapPin icon before description */}
+                          <p className="text-sm text-muted-foreground line-clamp-2 flex items-center gap-1.5">
+                            <MapPin size={14} className="shrink-0" />
+                            <span>{casino.description || 'No address available.'}</span>
                           </p>
                           <div className="mt-auto pt-3 flex justify-between items-center">
                             <span className="text-primary font-medium text-sm flex items-center">
