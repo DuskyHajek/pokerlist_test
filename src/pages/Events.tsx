@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { Skeleton } from "@/components/ui/skeleton";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import DownloadApp from "../components/DownloadApp";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
@@ -274,7 +275,19 @@ const Events = () => {
             </div>
           </div>
         </section>
+
+        {/* Simple link to download section */}
+        <div className="container mx-auto px-4 text-center py-8">
+          <a
+            href="#download"
+            className="inline-flex items-center justify-center px-6 py-3 border border-pokerPurple text-base font-medium rounded-md text-pokerPurple bg-background hover:bg-pokerPurple/10 transition-colors"
+          >
+            More Poker Events in the PokerList App
+          </a>
+        </div>
       </main>
+
+      <DownloadApp />
       <Footer />
     </div>
   );

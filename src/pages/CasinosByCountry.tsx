@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { Skeleton } from "@/components/ui/skeleton";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import DownloadApp from "../components/DownloadApp";
 import { MapPin, Search, X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -699,7 +700,8 @@ const CasinosByCountry = () => {
           </div>
         </section>
       </main>
-      
+
+      <DownloadApp />
       <Footer />
     </div>
   );

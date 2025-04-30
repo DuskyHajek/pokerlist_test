@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import DownloadApp from "../components/DownloadApp";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -214,6 +215,7 @@ const Casinos = () => {
           </div>
         </section>
       </main>
+      <DownloadApp />
       <Footer />
     </div>
   );

@@ -263,6 +263,16 @@ const CashGamesPage = () => {
           </div>
         </section>
 
+        {/* Simple link to download section */}
+        <div className="container mx-auto px-4 text-center py-8">
+          <a
+            href="#download"
+            className="inline-flex items-center justify-center px-6 py-3 border border-pokerPurple text-base font-medium rounded-md text-pokerPurple bg-background hover:bg-pokerPurple/10 transition-colors"
+          >
+            More Cash Games in the PokerList App
+          </a>
+        </div>
+
         <DownloadApp />
 
       </main>
