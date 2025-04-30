@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Smartphone, Apple, ChevronDown, Download } from "lucide-react";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileDownloadOpen, setIsMobileDownloadOpen] = useState(false);
   const location = useLocation();
+  const dropdownRef = useRef(null);
+  const mobileDropdownRef = useRef(null);
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -24,6 +28,23 @@ const Navbar = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+      if (mobileDropdownRef.current && !mobileDropdownRef.current.contains(event.target)) {
+        setIsMobileDownloadOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   return (
@@ -58,9 +79,47 @@ const Navbar = () => {
               <img src="/icons/cashgames.png" alt="" width="20" height="20" className="w-5 h-5 opacity-80 group-hover:opacity-100 transition-opacity"/>
               Live Cash Games
             </Link>
-            <Link to="/#download" className="app-download-button px-4 py-2 rounded-md text-white font-medium hover:scale-105 transition-transform">
-              Download App
-            </Link>
+            
+            {/* Download App Dropdown */}
+            <div className="relative" ref={dropdownRef}>
+              <button 
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="app-download-button px-4 py-2 rounded-md text-white font-medium hover:scale-105 transition-transform flex items-center"
+              >
+                Download App
+                <ChevronDown size={16} className={`ml-1 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {/* Dropdown Menu */}
+              <div 
+                className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-background border border-border overflow-hidden transition-all duration-200 origin-top-right ${
+                  isDropdownOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+                }`}
+              >
+                <div className="py-1">
+                  <a
+                    href="https://play.google.com/store/apps/details?id=com.icreativecompany.pokerlist2"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center px-4 py-2 text-sm hover:bg-white/10 transition-colors"
+                    onClick={() => setIsDropdownOpen(false)}
+                  >
+                    <Smartphone size={16} className="mr-2" />
+                    Google Play
+                  </a>
+                  <a
+                    href="https://itunes.apple.com/sk/app/pokerlist/id604977349?mt=8"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center px-4 py-2 text-sm hover:bg-white/10 transition-colors"
+                    onClick={() => setIsDropdownOpen(false)}
+                  >
+                    <Apple size={16} className="mr-2" />
+                    App Store
+                  </a>
+                </div>
+              </div>
+            </div>
           </nav>
 
           {/* Mobile Menu Button */}
@@ -75,7 +134,7 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         <div 
-          className={`md:hidden py-2 bg-background border-t border-border shadow-lg origin-top transition-all duration-300 ease-in-out overflow-hidden ${isMenuOpen ? 'max-h-[300px] opacity-100' : 'max-h-0 opacity-0'}`}
+          className={`md:hidden py-2 bg-background border-t border-border shadow-lg origin-top transition-all duration-300 ease-in-out overflow-hidden ${isMenuOpen ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'}`}
         >
           <div className="flex flex-col space-y-0.5 items-start px-2">
             <Link 
@@ -113,13 +172,47 @@ const Navbar = () => {
             <div className="pt-2 w-full">
               <div className="border-t border-border/50 w-full"></div>
             </div>
-            <Link 
-              to="/#download" 
-              className="app-download-button px-4 py-2.5 rounded-md text-white font-medium inline-block w-fit mt-2"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Download App
-            </Link>
+            
+            {/* Mobile Download App Button with Expandable Options */}
+            <div className="w-full mt-2" ref={mobileDropdownRef}>
+              {/* Main Download Button */}
+              <button 
+                onClick={() => setIsMobileDownloadOpen(!isMobileDownloadOpen)}
+                className="app-download-button px-4 py-2.5 rounded-md text-white font-medium inline-flex items-center justify-between w-full"
+              >
+                <div className="flex items-center">
+                  <Download size={18} className="mr-2" />
+                  <span>Download App</span>
+                </div>
+                <ChevronDown size={16} className={`transition-transform ${isMobileDownloadOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {/* Expandable Store Options */}
+              <div 
+                className={`mt-2 space-y-2 overflow-hidden transition-all duration-300 ${
+                  isMobileDownloadOpen ? 'max-h-[100px] opacity-100' : 'max-h-0 opacity-0'
+                }`}
+              >
+                <a 
+                  href="https://play.google.com/store/apps/details?id=com.icreativecompany.pokerlist2"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-pokerPurple/20 hover:bg-pokerPurple/30 px-4 py-2.5 rounded-md text-white font-medium inline-flex items-center w-full transition-colors"
+                >
+                  <Smartphone size={18} className="mr-2" />
+                  Google Play
+                </a>
+                <a 
+                  href="https://itunes.apple.com/sk/app/pokerlist/id604977349?mt=8"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-pokerBlue/20 hover:bg-pokerBlue/30 px-4 py-2.5 rounded-md text-white font-medium inline-flex items-center w-full transition-colors"
+                >
+                  <Apple size={18} className="mr-2" />
+                  App Store
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>

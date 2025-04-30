@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
-import { Download, LayoutGrid } from "lucide-react";
+import { Download, LayoutGrid, Smartphone, Apple, ChevronDown } from "lucide-react";
 
 const HeroSection = () => {
   const [scrollY, setScrollY] = useState(0);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,14 +20,28 @@ const HeroSection = () => {
     };
   }, []);
 
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div className="hero-gradient min-h-[75vh] sm:min-h-[85vh] pt-16 sm:pt-20 pb-10 sm:pb-16 flex flex-col justify-start relative overflow-hidden">
+    <div className="hero-gradient min-h-[85vh] sm:min-h-[85vh] pt-16 sm:pt-20 pb-10 sm:pb-16 flex flex-col justify-start relative overflow-hidden">
       {/* --- Animated Background Blobs --- */}
       <div className="bg-blob bg-pokerPurple w-40 h-40 sm:w-96 sm:h-96 absolute top-[-20px] left-[-20px] sm:top-[-50px] sm:left-[-100px]" style={{ animationDelay: '0s' }}></div>
       <div className="bg-blob bg-pokerBlue w-48 h-48 sm:w-[500px] sm:h-[500px] absolute bottom-[-40px] right-[-40px] sm:bottom-[-150px] sm:right-[-150px]" style={{ animationDelay: '5s' }}></div>
       <div className="bg-blob bg-pokerRed w-32 h-32 sm:w-80 sm:h-80 absolute top-[20%] left-[5%] sm:left-[30%]" style={{ animationDelay: '10s' }}></div>
 
-      <div className="container mx-auto px-4 mt-8 sm:mt-12 md:mt-16 relative z-10">
+      <div className="container mx-auto px-4 mt-2 sm:mt-12 md:mt-16 relative z-10">
         <div className="flex flex-col md:grid md:grid-cols-2 gap-6 md:gap-8 md:items-center">
           {/* Text Content - Order 1 */}
           <div className="text-center md:text-left order-1 md:order-1">
@@ -38,15 +54,15 @@ const HeroSection = () => {
             </h1>
             
             <p 
-              className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-lg mx-auto md:mx-0 animate-fade-in"
+              className="text-base sm:text-lg md:text-xl text-muted-foreground mb-4 sm:mb-6 max-w-lg mx-auto md:mx-0 animate-fade-in"
               style={{ animationDelay: '0.3s' }}
             >
               Discover tournaments, cash games, and poker rooms near you with PokerList - your pocket poker companion.
             </p>
             
-            {/* Stats Cards - Placed here to appear before image on mobile */}
+            {/* Stats Cards */}
             <div 
-              className="mt-6 sm:mt-8 grid grid-cols-3 gap-2 sm:gap-4 animate-fade-in mb-6 sm:mb-8 md:mb-0"
+              className="mt-4 sm:mt-6 grid grid-cols-3 gap-2 sm:gap-4 animate-fade-in mb-6 sm:mb-8 md:mb-0"
               style={{ animationDelay: '0.5s' }}
             >
               <Card className="card-highlight p-3 sm:p-6 text-center">
@@ -63,19 +79,54 @@ const HeroSection = () => {
               </Card>
             </div>
 
-            {/* Buttons - Now part of the text column */}
+            {/* Buttons */}
             <div 
-              className="order-3 md:order-3 flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8 animate-fade-in justify-center md:justify-start"
+              className="order-3 md:order-3 flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8 animate-fade-in justify-center md:justify-start mb-8 sm:mb-0"
               style={{ animationDelay: '0.4s' }}
             >
-              <a 
-                href="#download" 
-                className="relative group app-download-button px-5 sm:px-6 py-2.5 sm:py-3 rounded-md text-white font-semibold text-base sm:text-lg inline-flex items-center justify-center overflow-hidden w-full sm:w-auto"
-              >
-                <div className="absolute inset-0 w-full h-full transition-all duration-300 scale-0 group-hover:scale-100 group-hover:bg-gradient-to-r from-pokerPurple to-pokerBlue rounded-md"></div>
-                <Download className="relative z-10 mr-2" size={18} />
-                <span className="relative z-10">Download App</span>
-              </a>
+              {/* Download App Button with Dropdown */}
+              <div className="relative w-full sm:w-auto" ref={dropdownRef}>
+                <button 
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="relative group app-download-button px-5 sm:px-6 py-2.5 sm:py-3 rounded-md text-white font-semibold text-base sm:text-lg inline-flex items-center justify-center overflow-hidden w-full"
+                >
+                  <div className="absolute inset-0 w-full h-full transition-all duration-300 scale-0 group-hover:scale-100 group-hover:bg-gradient-to-r from-pokerPurple to-pokerBlue rounded-md"></div>
+                  <Download className="relative z-10 mr-2" size={18} />
+                  <span className="relative z-10">Download App</span>
+                  <ChevronDown size={16} className={`relative z-10 ml-1 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {/* Dropdown Menu */}
+                <div 
+                  className={`absolute left-0 sm:left-auto sm:right-0 mt-2 w-full sm:w-48 rounded-md shadow-lg bg-background border border-border overflow-hidden transition-all duration-200 origin-top-right z-20 ${
+                    isDropdownOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+                  }`}
+                >
+                  <div className="py-1">
+                    <a
+                      href="https://play.google.com/store/apps/details?id=com.icreativecompany.pokerlist2"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center px-4 py-2.5 text-sm hover:bg-white/10 transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <Smartphone size={16} className="mr-2" />
+                      Google Play
+                    </a>
+                    <a
+                      href="https://itunes.apple.com/sk/app/pokerlist/id604977349?mt=8"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center px-4 py-2.5 text-sm hover:bg-white/10 transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <Apple size={16} className="mr-2" />
+                      App Store
+                    </a>
+                  </div>
+                </div>
+              </div>
+              
               <a 
                 href="/casinos" 
                 className="border border-white/20 hover:border-primary/80 hover:text-primary px-5 sm:px-6 py-2.5 sm:py-3 rounded-md text-white font-semibold text-base sm:text-lg inline-flex items-center justify-center transition-all duration-300 active:scale-95 w-full sm:w-auto"
@@ -86,12 +137,10 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Image Section - Order 2. Removed negative margin, added md:justify-end */}
-          {/* Adjusted container and image sizes for mobile */}
-          <div className="order-2 md:order-2 flex justify-center md:justify-end items-center animate-fade-in mt-4 md:mt-0" style={{ animationDelay: '0.6s' }}>
-            {/* Made base size even smaller */}
-            <div className="relative flex justify-center items-center w-[200px] h-[200px] sm:w-[320px] md:w-[350px] sm:h-[320px] md:h-[350px]">
-              {/* Image 1 - Now on top, rotated right */}
+          {/* Image Section - Order 2, now with improved mobile spacing */}
+          <div className="order-2 md:order-2 flex justify-center md:justify-end items-center animate-fade-in mt-2 md:mt-0" style={{ animationDelay: '0.6s' }}>
+            <div className="relative flex justify-center items-center w-[220px] h-[240px] sm:w-[320px] md:w-[350px] sm:h-[320px] md:h-[350px]">
+              {/* Single Image with shadow and hover effect */}
               <img
                 src="/PL_screen1.jpeg"
                 alt="PokerList Mobile App - Events"
@@ -99,17 +148,10 @@ const HeroSection = () => {
                 width="240"
                 height="480"
                 fetchPriority="high"
-                className="absolute w-[130px] h-auto sm:w-[220px] md:w-[240px] object-contain rounded-xl shadow-xl z-10 transform translate-x-2 sm:translate-x-6 rotate-[8deg] hover:rotate-[10deg] hover:scale-105 transition-transform duration-300"
+                className="w-[150px] h-auto sm:w-[260px] md:w-[280px] object-contain rounded-xl shadow-xl transform hover:scale-105 hover:rotate-2 transition-all duration-300 hover:shadow-2xl"
               />
-              {/* Image 2 - Now behind, rotated left */}
-              <img
-                src="/PL_screen2.jpeg"
-                alt="PokerList Mobile App - Live Tournaments Preview"
-                loading="lazy"
-                width="240"
-                height="480"
-                className="absolute w-[130px] h-auto sm:w-[220px] md:w-[240px] object-contain rounded-xl shadow-lg z-0 transform -translate-x-2 sm:-translate-x-6 -rotate-[8deg] hover:rotate-[-10deg] hover:scale-105 transition-transform duration-300"
-              />
+              {/* Subtle decorative element to add depth */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-pokerPurple/20 to-pokerBlue/20 rounded-xl -z-10 transform -rotate-3 scale-95 blur-sm"></div>
             </div>
           </div>
 

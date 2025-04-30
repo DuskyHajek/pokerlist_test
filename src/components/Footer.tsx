@@ -52,13 +52,23 @@ const Footer = () => {
             <h3 className="text-base font-semibold mb-3 uppercase tracking-wider text-white">Download</h3>
             <ul className="grid grid-cols-2 sm:grid-cols-1 gap-x-4 gap-y-1 mb-5 sm:mb-6">
               <li>
-                <a href="#" className={footerLinkClasses}>
+                <a 
+                  href="https://play.google.com/store/apps/details?id=com.icreativecompany.pokerlist2" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className={footerLinkClasses}
+                >
                   <Smartphone size={16} className="mr-2 flex-shrink-0"/>
                   <span>Android App</span>
                 </a>
               </li>
               <li>
-                <a href="#" className={footerLinkClasses}>
+                <a 
+                  href="https://itunes.apple.com/sk/app/pokerlist/id604977349?mt=8"
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className={footerLinkClasses}
+                >
                   <Apple size={16} className="mr-2 flex-shrink-0"/>
                   <span>iOS App</span>
                 </a>

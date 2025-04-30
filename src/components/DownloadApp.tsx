@@ -52,16 +52,20 @@ const DownloadApp = () => {
             </div>
 
             {/* Buttons */}          
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center md:justify-start w-full sm:w-auto mb-8 md:mb-0">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center md:justify-start w-full sm:w-auto mb-10 md:mb-0">
               <a 
-                href="#" 
+                href="https://play.google.com/store/apps/details?id=com.icreativecompany.pokerlist2" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="group border border-white hover:bg-white/10 px-5 sm:px-6 py-2.5 sm:py-3 rounded-md text-white font-medium inline-flex items-center justify-center transition-colors transition-shadow duration-300 group-hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] w-full sm:w-auto"
               >
                 <Smartphone className="mr-2" size={18} />
                 Google Play
               </a>
               <a 
-                href="#" 
+                href="https://itunes.apple.com/sk/app/pokerlist/id604977349?mt=8" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="group border border-white hover:bg-white/10 px-5 sm:px-6 py-2.5 sm:py-3 rounded-md text-white font-medium inline-flex items-center justify-center transition-colors transition-shadow duration-300 group-hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] w-full sm:w-auto"
               >
                 <Apple className="mr-2" size={18} />
@@ -70,21 +74,21 @@ const DownloadApp = () => {
             </div>
           </div>
 
-          {/* Image Column (Order 2 on md) */}
-          <div className="order-2 md:order-2 flex justify-center items-center mt-4 md:mt-0">
-            <div className="relative flex justify-center items-center w-[200px] h-[200px] sm:w-[320px] md:w-[350px] sm:h-[320px] md:h-[350px]">
-              {/* Image 1 - Now on top, rotated right */}
-              <img 
-                src="/PL_screen1.jpeg" 
-                alt="PokerList Mobile App - Events Preview" 
-                className="absolute w-[130px] h-auto sm:w-[220px] md:w-[240px] object-contain rounded-xl shadow-xl z-10 transform translate-x-2 sm:translate-x-6 rotate-[8deg] hover:rotate-[10deg] hover:scale-105 transition-transform duration-300"
-              />
-              {/* Image 2 - Now behind, rotated left */}
-              <img 
-                src="/PL_screen2.jpeg" 
-                alt="PokerList Mobile App - Live Tournaments" 
-                className="absolute w-[130px] h-auto sm:w-[220px] md:w-[240px] object-contain rounded-xl shadow-lg z-0 transform -translate-x-2 sm:-translate-x-6 -rotate-[8deg] hover:rotate-[-10deg] hover:scale-105 transition-transform duration-300"
-              />
+          {/* Image Column (Order 2 on md) - Added proper mobile spacing */}
+          <div className="order-2 md:order-2 flex justify-center items-center mt-6 md:mt-0 pt-4">
+            <div className="relative flex justify-center items-center w-[180px] h-[220px] sm:w-[320px] md:w-[350px] sm:h-[320px] md:h-[350px]">
+              {/* Single image with decorative effect */}
+              <div className="relative">
+                <img 
+                  src="/PL_screen1.jpeg" 
+                  alt="PokerList Mobile App - Events Preview" 
+                  className="w-[140px] h-auto sm:w-[260px] md:w-[280px] object-contain rounded-xl shadow-xl transform hover:scale-105 hover:rotate-2 transition-all duration-300 hover:shadow-2xl"
+                />
+                {/* Decorative effect elements - reduced size for mobile */}
+                <div className="absolute -inset-1 bg-gradient-to-tr from-pokerRed/30 to-pokerPurple/30 rounded-xl -z-10 transform -rotate-3 scale-95 blur-sm"></div>
+                <div className="absolute -bottom-3 -right-3 w-16 h-16 sm:w-24 sm:h-24 bg-pokerRed/20 rounded-full blur-xl"></div>
+                <div className="absolute -top-3 -left-3 w-12 h-12 sm:w-16 sm:h-16 bg-pokerPurple/20 rounded-full blur-xl"></div>
+              </div>
             </div>
           </div>
         
