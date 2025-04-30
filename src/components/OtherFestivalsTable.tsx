@@ -38,7 +38,8 @@ const OtherFestivalsTable: React.FC<OtherFestivalsTableProps> = ({ festivals }) 
       </CardHeader>
       <CardContent className="pt-0">
         <Table>
-          <TableHeader>
+          {/* Hide header on mobile, show on md and up */}
+          <TableHeader className="hidden md:table-header-group">
             <TableRow className="bg-muted/40 hover:bg-muted/50">
               <TableHead>Event</TableHead>
               <TableHead>City</TableHead>
@@ -47,13 +48,15 @@ const OtherFestivalsTable: React.FC<OtherFestivalsTableProps> = ({ festivals }) 
           </TableHeader>
           <TableBody>
             {festivals.map((festival) => (
-              <TableRow key={festival.clubid}>
-                <TableCell className="font-medium align-middle">
+              // Add padding and border for mobile view separation
+              <TableRow key={festival.clubid} className="border-b last:border-b-0 md:border-b">
+                {/* Event Cell (adjusts content for mobile) */}
+                <TableCell className="font-medium align-top md:align-middle py-3 md:py-2">
+                  {/* Logo and Name Link */}
                   <Link
                     to={`/festival/${festival.clubid}/${slugify(festival.clubname)}`}
-                    className="flex items-center gap-2 text-pokerBlue hover:underline group"
+                    className="flex items-center gap-2 text-pokerBlue hover:underline group mb-1 md:mb-0" // Add bottom margin for mobile spacing
                   >
-                    {/* Small Circle Logo */}
                     <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-muted">
                       {festival.club_logourl && (
                         <img
@@ -63,12 +66,19 @@ const OtherFestivalsTable: React.FC<OtherFestivalsTableProps> = ({ festivals }) 
                         />
                       )}
                     </div>
-                    {/* Festival Name */}
                     <span className="group-hover:underline">{festival.clubname}</span>
                   </Link>
+                  {/* Mobile Only: City and Duration */}
+                  <div className="block md:hidden text-sm text-muted-foreground ml-10 space-y-0.5">
+                      {/* Using ml-10 to align with text, adjust if needed */}
+                    <div>{festival.club_city}</div>
+                    <div>{festival.club_event_duration}</div>
+                  </div>
                 </TableCell>
-                <TableCell className="align-middle">{festival.club_city}</TableCell>
-                <TableCell className="align-middle">{festival.club_event_duration}</TableCell>
+                {/* City Cell (hidden on mobile) */}
+                <TableCell className="align-middle hidden md:table-cell">{festival.club_city}</TableCell>
+                {/* Duration Cell (hidden on mobile) */}
+                <TableCell className="align-middle hidden md:table-cell">{festival.club_event_duration}</TableCell>
               </TableRow>
             ))}
           </TableBody>
