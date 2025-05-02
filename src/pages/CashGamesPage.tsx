@@ -27,8 +27,6 @@ interface CashGame {
   description: string;
   clubname: string;
   clubid: string;
-  logoUrl?: string;
-  countryCode?: string;
 }
 
 // --- Helper function to generate a URL-friendly slug ---
@@ -64,72 +62,15 @@ const CashGameListItemSkeleton = () => (
   </Card>
 );
 
-// Helper to get attribute value safely (similar to CasinoDetail)
-const getAttr = (element: Element | null, attrName: string): string | undefined => {
-    return element?.getAttribute(attrName) ?? undefined;
-};
-
-// Function to fetch logo and country code for a single club ID
-const fetchClubDetails = async (clubId: string): Promise<{ logoUrl?: string; countryCode?: string }> => {
-    console.log(`[fetchClubDetails] Fetching details for club ID: ${clubId}`);
-    try {
-        const response = await fetch('/pokerlist-api-detail', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `id=${encodeURIComponent(clubId)}`
-        });
-        if (!response.ok) {
-            console.error(`[fetchClubDetails] API error for club ${clubId}: Status ${response.status}`);
-            return {}; // Return empty object on API error
-        }
-        const xmlData = await response.text();
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlData, "text/xml");
-        const clubElement = xmlDoc.querySelector(`POKERLIST > POKERCLUB[ID="${clubId}"]`);
-
-        if (!clubElement) {
-            console.warn(`[fetchClubDetails] Club element not found for ID ${clubId} in XML.`);
-            return {};
-        }
-
-        const logoUrl = getAttr(clubElement, 'LOGOURL');
-        const address = getAttr(clubElement, 'ADDRESS');
-        let countryCode: string | undefined = undefined;
-
-        // Attempt to extract country code (e.g., the last part of the address string)
-        if (address) {
-            const addressParts = address.split(',').map(part => part.trim());
-            // Basic check: Assume country code is 2 letters and the last part
-            // More robust parsing might be needed depending on address format consistency
-            const potentialCode = addressParts[addressParts.length - 1];
-            if (potentialCode && potentialCode.length === 2 && /^[A-Z]{2}$/.test(potentialCode)) {
-                countryCode = potentialCode;
-            }
-             // Add more specific country extraction logic if needed based on typical address formats
-             // For example, if country name is always present:
-             // const countryName = addressParts[addressParts.length - 1];
-             // countryCode = Object.keys(countryCodeToName).find(code => countryCodeToName[code] === countryName);
-        }
-
-        console.log(`[fetchClubDetails] Found details for ${clubId}: logo=${logoUrl}, countryCode=${countryCode}`);
-        return { logoUrl, countryCode };
-    } catch (error) {
-        console.error(`[fetchClubDetails] Failed to fetch/parse details for club ${clubId}:`, error);
-        return {}; // Return empty object on any error
-    }
-};
-
 const CashGamesPage = () => {
   const [cashGames, setCashGames] = useState<CashGame[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCashGamesAndLogos = async () => {
+    const fetchCashGames = async () => {
       setIsLoading(true);
       setError(null);
-      let initialCashGames: CashGame[] = [];
-
       try {
         console.log("[CashGamesPage useEffect] Fetching initial cash games...");
         const response = await fetch('/api/cash_games.php');
@@ -138,39 +79,12 @@ const CashGamesPage = () => {
         }
         const data = await response.json();
         if (Array.isArray(data)) {
-          initialCashGames = data;
           setCashGames(data);
-          console.log("[CashGamesPage useEffect] Initial cash games fetched:", initialCashGames.length);
+          console.log("[CashGamesPage useEffect] Initial cash games fetched:", data.length);
         } else {
           console.warn("[CashGamesPage useEffect] Received data is not an array:", data);
           setCashGames([]);
         }
-
-        if (initialCashGames.length > 0) {
-            console.log("[CashGamesPage useEffect] Fetching logos...");
-            const uniqueClubIds = [...new Set(initialCashGames.map(game => game.clubid))];
-            console.log("[CashGamesPage useEffect] Unique club IDs:", uniqueClubIds);
-
-            const logoPromises = uniqueClubIds.map(id => fetchClubDetails(id));
-            const logoInfos = await Promise.all(logoPromises);
-
-            const clubLogoMap = new Map<string, { logoUrl?: string; countryCode?: string }>();
-            uniqueClubIds.forEach((id, index) => {
-                if (logoInfos[index].logoUrl) {
-                    clubLogoMap.set(id, logoInfos[index]);
-                }
-            });
-            console.log("[CashGamesPage useEffect] Logo map created:", clubLogoMap);
-
-            const gamesWithLogos = initialCashGames.map(game => ({
-                ...game,
-                logoUrl: clubLogoMap.get(game.clubid)?.logoUrl,
-                countryCode: clubLogoMap.get(game.clubid)?.countryCode
-            }));
-            setCashGames(gamesWithLogos);
-            console.log("[CashGamesPage useEffect] Updated cash games with logos.");
-        }
-
       } catch (e) {
         console.error("[CashGamesPage useEffect] Failed to fetch data:", e);
         setError(e instanceof Error ? e.message : "Failed to load cash games. Please try again later.");
@@ -181,7 +95,7 @@ const CashGamesPage = () => {
       }
     };
 
-    fetchCashGamesAndLogos();
+    fetchCashGames();
   }, []);
 
   const formatCurrency = (currencyCode: string) => {
@@ -243,29 +157,14 @@ const CashGamesPage = () => {
                     <Link
                       key={game.id}
                       to={`/casino/${game.clubid}/${slug}`}
-                      state={{ logoUrl: game.logoUrl, countryCode: game.countryCode }}
                       className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
                     >
                       <Card
                         className="card-highlight p-4 flex items-start md:items-center gap-3 hover:border-primary/50 transition-colors"
                       >
                         <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-sm text-muted-foreground mt-1 md:mt-0 overflow-hidden border border-border">
-                           {game.logoUrl ? (
-                               <img
-                                src={game.logoUrl}
-                                alt={`${game.clubname} logo`}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                    const target = e.currentTarget;
-                                    target.style.display = 'none';
-                                    const parent = target.parentElement;
-                                    if(parent) parent.innerHTML = game.clubname.substring(0, 1) || 'P';
-                                }}
-                               />
-                           ) : (
-                             game.clubname.substring(0, 1) || 'P'
-                           )}
-                         </div>
+                          {game.clubname.substring(0, 1) || 'P'}
+                        </div>
 
                         <div className="flex-grow flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-2">
                           <div className="flex-grow">

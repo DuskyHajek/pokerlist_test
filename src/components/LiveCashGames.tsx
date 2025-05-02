@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-// Update CashGame interface to match API response and include fetched details
+// Revert CashGame interface: Remove logoUrl and countryCode
 interface CashGame {
   id: string; // API returns string IDs
   smallblind: string;
@@ -22,9 +22,8 @@ interface CashGame {
   description: string;
   clubname: string;
   clubid: string;
-  // Fields to be fetched separately:
-  logoUrl?: string;
-  countryCode?: string;
+  // logoUrl?: string; // Removed
+  // countryCode?: string; // Removed
 }
 
 // --- Helper function to generate a URL-friendly slug ---
@@ -43,54 +42,6 @@ const createSlug = (name: string): string => {
     .replace(/-+$/, ''); // Trim - from end of text
 
   return slug;
-};
-
-// --- Helper to get attribute value safely (copied from CashGamesPage) ---
-const getAttr = (element: Element | null, attrName: string): string | undefined => {
-    return element?.getAttribute(attrName) ?? undefined;
-};
-
-// --- Function to fetch logo and country code (copied from CashGamesPage) ---
-const fetchClubDetails = async (clubId: string): Promise<{ logoUrl?: string; countryCode?: string }> => {
-    console.log(`[fetchClubDetails-Live] Fetching details for club ID: ${clubId}`); // Added -Live for distinction
-    try {
-        const response = await fetch('/pokerlist-api-detail', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `id=${encodeURIComponent(clubId)}`
-        });
-        if (!response.ok) {
-            console.error(`[fetchClubDetails-Live] API error for club ${clubId}: Status ${response.status}`);
-            return {};
-        }
-        const xmlData = await response.text();
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlData, "text/xml");
-        const clubElement = xmlDoc.querySelector(`POKERLIST > POKERCLUB[ID="${clubId}"]`);
-
-        if (!clubElement) {
-            console.warn(`[fetchClubDetails-Live] Club element not found for ID ${clubId} in XML.`);
-            return {};
-        }
-
-        const logoUrl = getAttr(clubElement, 'LOGOURL');
-        const address = getAttr(clubElement, 'ADDRESS');
-        let countryCode: string | undefined = undefined;
-
-        if (address) {
-            const addressParts = address.split(',').map(part => part.trim());
-            const potentialCode = addressParts[addressParts.length - 1];
-            if (potentialCode && potentialCode.length === 2 && /^[A-Z]{2}$/.test(potentialCode)) {
-                countryCode = potentialCode;
-            }
-        }
-
-        console.log(`[fetchClubDetails-Live] Found details for ${clubId}: logo=${logoUrl}, countryCode=${countryCode}`);
-        return { logoUrl, countryCode };
-    } catch (error) {
-        console.error(`[fetchClubDetails-Live] Failed to fetch/parse details for club ${clubId}:`, error);
-        return {};
-    }
 };
 
 // --- Skeleton Component for Live Cash Game Row ---
@@ -119,11 +70,10 @@ const LiveCashGames = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Revert fetchCashGames to only fetch basic list
   const fetchCashGames = async () => {
     setIsLoading(true);
     setError(null);
-    let initialCashGames: CashGame[] = []; // To hold games before adding details
-
     try {
       console.log("[LiveCashGames fetch] Fetching initial cash games...");
       const response = await fetch('/api/cash_games.php');
@@ -132,47 +82,13 @@ const LiveCashGames = () => {
       }
       const data = await response.json();
       if (Array.isArray(data)) {
-          // Store initial data, limit to 6 for display
-          initialCashGames = data.slice(0, 6);
-          // Optionally set state here for faster initial render without logos/country
-          // setCashGames(initialCashGames);
-          console.log("[LiveCashGames fetch] Initial games fetched:", initialCashGames.length);
+          setCashGames(data.slice(0, 6)); // Set state directly
+          console.log("[LiveCashGames fetch] Initial games fetched and set:", data.slice(0, 6).length);
       } else {
            console.warn("[LiveCashGames fetch] Received data is not an array:", data);
            setCashGames([]);
            setError("Invalid data format received from server.");
-           setIsLoading(false); // Stop loading if format is wrong
-           return; // Exit early
       }
-
-      // --- Fetch Logos and Country Codes --- 
-      if (initialCashGames.length > 0) {
-          console.log("[LiveCashGames fetch] Fetching details (logo/country)..." );
-          const uniqueClubIds = [...new Set(initialCashGames.map(game => game.clubid))];
-          console.log("[LiveCashGames fetch] Unique club IDs:", uniqueClubIds);
-
-          const detailPromises = uniqueClubIds.map(id => fetchClubDetails(id));
-          const detailInfos = await Promise.all(detailPromises);
-
-          const clubDetailMap = new Map<string, { logoUrl?: string; countryCode?: string }>();
-          uniqueClubIds.forEach((id, index) => {
-              // Store details even if logoUrl is missing, might have countryCode
-              clubDetailMap.set(id, detailInfos[index]);
-          });
-          console.log("[LiveCashGames fetch] Detail map created:", clubDetailMap);
-
-          // Add details to the games
-          const gamesWithDetails = initialCashGames.map(game => ({
-              ...game,
-              logoUrl: clubDetailMap.get(game.clubid)?.logoUrl,
-              countryCode: clubDetailMap.get(game.clubid)?.countryCode
-          }));
-          setCashGames(gamesWithDetails); // Update state with full details
-          console.log("[LiveCashGames fetch] Updated games with details.");
-      } else {
-          setCashGames([]); // Set to empty if no initial games
-      }
-
     } catch (e) {
       console.error("[LiveCashGames fetch] Failed to fetch data:", e);
       setError("Failed to load cash games. Please try again later.");
@@ -250,29 +166,13 @@ const LiveCashGames = () => {
                 <Link 
                   key={game.id} 
                   to={`/casino/${game.clubid}/${slug}`}
-                  // Pass both logoUrl and countryCode in state
-                  state={{ logoUrl: game.logoUrl, countryCode: game.countryCode }} 
                   className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
                 >
                   <Card
                     className="card-highlight p-4 flex items-start md:items-center gap-3 hover:border-primary/50 transition-colors max-w-full w-full mx-auto"
                   >
                     <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-sm text-muted-foreground mt-1 md:mt-0 overflow-hidden border border-border">
-                      {game.logoUrl ? (
-                           <img
-                            src={game.logoUrl}
-                            alt={`${game.clubname} logo`}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                                const target = e.currentTarget;
-                                target.style.display = 'none';
-                                const parent = target.parentElement;
-                                if(parent) parent.innerHTML = game.clubname.substring(0, 1) || 'P';
-                            }}
-                           />
-                       ) : (
-                         game.clubname.substring(0, 1) || 'P'
-                       )}
+                       {game.clubname.substring(0, 1) || 'P'}
                     </div>
 
                     <div className="flex-grow flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-2">

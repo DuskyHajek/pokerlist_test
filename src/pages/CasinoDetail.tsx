@@ -166,12 +166,8 @@ const formatCurrency = (currencyCode: string) => {
 const CasinoDetail = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
-  // Explicitly log the entire state object received
-  console.log("[CasinoDetail Render] Received location.state:", location.state);
-  const passedCountryCode = location.state?.countryCode as string | undefined;
-  const passedLogoUrl = location.state?.logoUrl as string | undefined;
 
-  console.log(`[CasinoDetail Render] Parsed from state - id: ${id}, passedCountryCode: ${passedCountryCode}, passedLogoUrl: ${passedLogoUrl}`);
+  console.log(`[CasinoDetail Render] id: ${id}`);
 
   const [casino, setCasino] = useState<Casino | null>(null);
   const [liveTournaments, setLiveTournaments] = useState<LiveTournament[]>([]);
@@ -180,21 +176,10 @@ const CasinoDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [countryName, setCountryName] = useState<string | null>(null);
+  const [countryCode, setCountryCode] = useState<string | null>(null);
   const [showAllTournaments, setShowAllTournaments] = useState(false);
 
   useEffect(() => {
-    // Log inside useEffect to see values when the effect runs
-    console.log(`[CasinoDetail useEffect] Running with: id=${id}, passedCountryCode=${passedCountryCode}, passedLogoUrl=${passedLogoUrl}`);
-
-    if (passedCountryCode) {
-      const code = passedCountryCode.toUpperCase();
-      const nameToSet = countryCodeToName[code] || code;
-      setCountryName(nameToSet);
-      // Optionally, you can set a countryFlag state if you want to display the flag
-    } else {
-      setCountryName("Unknown Country");
-    }
-
     if (!id) {
       console.error("[CasinoDetail useEffect] ID is missing!");
       setError("Casino ID is missing from URL parameter.");
@@ -206,31 +191,28 @@ const CasinoDetail = () => {
       console.log(`[CasinoDetail fetch] Fetching data for id: ${id}`);
       setIsLoading(true);
       setError(null);
-      // Reset states
       setCasino(null);
       setLiveTournaments([]);
-      setCashGames([]); // Reset cash games state
+      setCashGames([]);
       setClubPictures([]);
       setShowAllTournaments(false);
+      setCountryName(null);
+      setCountryCode(null);
 
       try {
-        // --- Fetch 1: Casino Details (XML) ---
         const casinoDetailResponse = await fetch('/pokerlist-api-detail', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: `id=${encodeURIComponent(id)}`
         });
 
         if (!casinoDetailResponse.ok) {
           const errorText = await casinoDetailResponse.text().catch(() => 'Could not read casino detail error response.');
           console.error(`[CasinoDetail fetch] Casino Detail API Error (status ${casinoDetailResponse.status}):`, errorText);
-          throw new Error(`Casino Detail API error! status: ${casinoDetailResponse.status}`); // Simplified error message
+          throw new Error(`Casino Detail API error! status: ${casinoDetailResponse.status}`);
         }
 
         const xmlData = await casinoDetailResponse.text();
-        // Log the raw response text BEFORE parsing
         console.log("[CasinoDetail fetch] Raw response from /pokerlist-api-detail:", xmlData);
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlData, "text/xml");
@@ -244,13 +226,12 @@ const CasinoDetail = () => {
         if (!pokerlistElement) {
             throw new Error("Invalid XML structure: <POKERLIST> tag not found.");
         }
-        const clubElement = pokerlistElement.querySelector(`POKERCLUB[ID="${id}"]`); // More specific selector
+        const clubElement = pokerlistElement.querySelector(`POKERCLUB[ID="${id}"]`);
         if (!clubElement) {
           console.error(`[CasinoDetail parse] Casino with ID ${id} not found in the API response XML.`);
           throw new Error(`Casino with ID ${id} not found in API response.`);
         }
 
-        // Parse Casino Details from XML
         let rawDescription = getAttr(clubElement, 'DESCRIPTION')?.replace(/&#10;/g, '\n') || '';
         const addressLineStartIndex = rawDescription.search(/^Address:/im);
         let cleanedDescription = rawDescription;
@@ -268,21 +249,46 @@ const CasinoDetail = () => {
             longitude: getAttr(clubElement, 'LONGITUDE'),
             contact: getAttr(clubElement, 'CONTACT'),
             url: getAttr(clubElement, 'URL'),
-            logo: getAttr(clubElement, 'LOGOURL'), // Keep this
+            logo: getAttr(clubElement, 'LOGOURL'),
             size: getAttr(clubElement, 'SIZE'),
             rank: getAttr(clubElement, 'RANK'),
             description: cleanedDescription,
             imgUrl: getAttr(clubElement, 'IMGURL'),
         };
-        const finalCasinoDetails: Casino = {
-          ...casinoDetails,
-          logo: passedLogoUrl || casinoDetails.logo, // Prioritize passed logo
-        };
-        console.log("[CasinoDetail state] Setting final casino state:", finalCasinoDetails);
-        setCasino(finalCasinoDetails);
+        console.log("[CasinoDetail state] Setting casino state:", casinoDetails);
+        setCasino(casinoDetails);
 
+        let determinedCountryCode: string | undefined = undefined;
+        const fetchedAddress = casinoDetails.address;
+        const fetchedCity = casinoDetails.city;
 
-        // Parse Live Tournaments from XML
+        if (fetchedAddress) {
+            const addressParts = fetchedAddress.split(',').map(part => part.trim());
+            const potentialCode = addressParts[addressParts.length - 1];
+            if (potentialCode && potentialCode.length === 2 && /^[A-Z]{2}$/.test(potentialCode)) {
+                determinedCountryCode = potentialCode;
+                console.log(`[CasinoDetail useEffect] Country code determined from address: ${determinedCountryCode}`);
+            }
+        }
+
+        if (!determinedCountryCode) {
+            if (fetchedCity === 'Rozvadov') {
+                determinedCountryCode = 'CZ';
+                console.log(`[CasinoDetail useEffect] Country code determined from city (${fetchedCity}): ${determinedCountryCode}`);
+            }
+        }
+
+        if (determinedCountryCode) {
+            const name = countryCodeToName[determinedCountryCode] || determinedCountryCode;
+            setCountryCode(determinedCountryCode);
+            setCountryName(name);
+            console.log(`[CasinoDetail useEffect] Setting country state: Code=${determinedCountryCode}, Name=${name}`);
+        } else {
+             setCountryName("Unknown Country");
+             setCountryCode(null);
+             console.log(`[CasinoDetail useEffect] Could not determine country.`);
+        }
+
         const tournamentElements = pokerlistElement.querySelectorAll("LIVETOURNAMENTS LIVEPOKER");
         const tournaments: LiveTournament[] = Array.from(tournamentElements).map(el => ({
             id: getAttr(el, 'ID')!,
@@ -297,7 +303,6 @@ const CasinoDetail = () => {
         console.log("[CasinoDetail state] Setting liveTournaments state:", tournaments);
         setLiveTournaments(tournaments);
 
-        // Parse Club Pictures from XML
         const pictureElements = pokerlistElement.querySelectorAll("CLUBPICTURES PICTURE");
         const pictures: ClubPicture[] = Array.from(pictureElements).map(el => ({
             href: getAttr(el, 'href') || '',
@@ -305,19 +310,14 @@ const CasinoDetail = () => {
         console.log("[CasinoDetail state] Setting clubPictures state:", pictures);
         setClubPictures(pictures);
 
-        // --- Fetch 2: Live Cash Games (JSON) ---
-        console.log(`[CasinoDetail fetch] Fetching live cash games from /api/cash_games.php for club ID: ${id}`);
         try {
             const cashGameResponse = await fetch('/api/cash_games.php');
             if (!cashGameResponse.ok) {
-                // Log error but don't throw, allow casino details to still render
                 console.error(`[CasinoDetail fetch] Cash Game API Error (status ${cashGameResponse.status}): Could not fetch live cash games.`);
-                // Set cash games to empty array or handle error state appropriately
                 setCashGames([]);
             } else {
                 const allCashGames: CashGame[] = await cashGameResponse.json();
                 if (Array.isArray(allCashGames)) {
-                    // Filter games for the current casino ID
                     const filteredGames = allCashGames.filter(game => game.clubid === id);
                     console.log(`[CasinoDetail state] Setting cashGames state (filtered from JSON):`, filteredGames);
                     setCashGames(filteredGames);
@@ -328,20 +328,16 @@ const CasinoDetail = () => {
             }
         } catch (cashGameError) {
              console.error("[CasinoDetail fetch] Failed to fetch or process live cash games:", cashGameError);
-             // Decide how to handle this - maybe show a specific error message for cash games?
-             // For now, just setting to empty and logging. The main casino details might still be valid.
              setCashGames([]);
         }
 
       } catch (err) {
-        // This catches errors from the main XML fetch/parse
         console.error("[CasinoDetail fetch/parse Error] Failed to fetch or parse casino details:", err);
         setError(err instanceof Error ? err.message : "An unknown error occurred fetching casino details");
-        // Ensure other states are clear if the main fetch fails
-         setCasino(null);
-         setLiveTournaments([]);
-         setCashGames([]);
-         setClubPictures([]);
+        setCasino(null);
+        setLiveTournaments([]);
+        setCashGames([]);
+        setClubPictures([]);
       } finally {
         console.log(`[CasinoDetail fetch] Finished fetching data for id: ${id}`);
         setIsLoading(false);
@@ -350,7 +346,7 @@ const CasinoDetail = () => {
 
     fetchCasinoData();
 
-  }, [id, passedCountryCode, passedLogoUrl]); // Keep dependencies
+  }, [id]);
 
   if (isLoading) {
     return <CasinoDetailSkeleton />;
@@ -373,7 +369,7 @@ const CasinoDetail = () => {
                 <p className="text-sm text-muted-foreground mt-2">Error: {error}</p>
                 <div className="mt-4">
                    <Button variant="outline" size="sm" asChild>
-                     <Link to={passedCountryCode ? `/casinos/${passedCountryCode}` : "/casinos"}>
+                     <Link to={countryCode ? `/casinos/${countryCode}` : "/casinos"}>
                        Back to Casinos{countryName ? ` in ${countryName}` : ''}
                      </Link>
                    </Button>
@@ -399,7 +395,7 @@ const CasinoDetail = () => {
              <h2 className="text-3xl font-bold mb-4">Casino Not Found</h2>
              <p className="mb-6">The casino details could not be loaded or the casino was not found.</p>
             <Button variant="outline" asChild>
-              <Link to={passedCountryCode ? `/casinos/${passedCountryCode}` : "/casinos"}>
+              <Link to={countryCode ? `/casinos/${countryCode}` : "/casinos"}>
                  Back to Casinos{countryName ? ` in ${countryName}` : ''}
                </Link>
             </Button>
@@ -416,7 +412,6 @@ const CasinoDetail = () => {
   const canonicalUrl = `https://pokerlist.com/casino/${casino.id}/${slugify(casino.name)}`;
   const ogImage = casino.logo || casino.imgUrl || "/opengraph-default.png";
 
-  // JSON-LD Structured Data for LocalBusiness
   const localBusinessJsonLd = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -440,7 +435,6 @@ const CasinoDetail = () => {
     } : {})
   };
 
-  // JSON-LD Structured Data for BreadcrumbList
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -457,11 +451,11 @@ const CasinoDetail = () => {
         "name": "Casinos",
         "item": "https://pokerlist.com/casinos"
       },
-      ...(countryName ? [{
+      ...(countryName && countryCode ? [{
         "@type": "ListItem",
         "position": 3,
         "name": countryName,
-        "item": `https://pokerlist.com/casinos/${passedCountryCode}`
+        "item": `https://pokerlist.com/casinos/${countryCode}`
       }] : []),
       {
         "@type": "ListItem",
@@ -497,7 +491,6 @@ const CasinoDetail = () => {
       </Helmet>
       <Navbar />
       <main className="flex-grow pt-16 bg-background">
-        {/* Breadcrumb Navigation */}
         <div className="container mx-auto px-4 pt-2 pb-4 hidden sm:block">
           <Breadcrumb>
             <BreadcrumbList>
@@ -508,11 +501,11 @@ const CasinoDetail = () => {
               <BreadcrumbItem>
                 <BreadcrumbLink href="/casinos">Casinos</BreadcrumbLink>
               </BreadcrumbItem>
-              {countryName && passedCountryCode && (
+              {countryName && countryCode && (
                 <>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
-                    <BreadcrumbLink href={`/casinos/${passedCountryCode}`}>{countryName}</BreadcrumbLink>
+                    <BreadcrumbLink href={`/casinos/${countryCode}`}>{countryName}</BreadcrumbLink>
                   </BreadcrumbItem>
                 </>
               )}
@@ -760,7 +753,7 @@ const CasinoDetail = () => {
 
             <div className="mt-12 text-center">
               <Button variant="outline" asChild>
-                <Link to={passedCountryCode ? `/casinos/${passedCountryCode}` : "/casinos"}>
+                <Link to={countryCode ? `/casinos/${countryCode}` : "/casinos"}>
                   &larr; Back to Casinos{countryName ? ` in ${countryName}` : ''}
                 </Link>
               </Button>
