@@ -166,10 +166,12 @@ const formatCurrency = (currencyCode: string) => {
 const CasinoDetail = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
+  // Explicitly log the entire state object received
+  console.log("[CasinoDetail Render] Received location.state:", location.state);
   const passedCountryCode = location.state?.countryCode as string | undefined;
   const passedLogoUrl = location.state?.logoUrl as string | undefined;
 
-  console.log(`[CasinoDetail Render] id: ${id}, passedCountryCode: ${passedCountryCode}, passedLogoUrl: ${passedLogoUrl}`);
+  console.log(`[CasinoDetail Render] Parsed from state - id: ${id}, passedCountryCode: ${passedCountryCode}, passedLogoUrl: ${passedLogoUrl}`);
 
   const [casino, setCasino] = useState<Casino | null>(null);
   const [liveTournaments, setLiveTournaments] = useState<LiveTournament[]>([]);
@@ -181,6 +183,9 @@ const CasinoDetail = () => {
   const [showAllTournaments, setShowAllTournaments] = useState(false);
 
   useEffect(() => {
+    // Log inside useEffect to see values when the effect runs
+    console.log(`[CasinoDetail useEffect] Running with: id=${id}, passedCountryCode=${passedCountryCode}, passedLogoUrl=${passedLogoUrl}`);
+
     if (passedCountryCode) {
       const code = passedCountryCode.toUpperCase();
       const nameToSet = countryCodeToName[code] || code;
@@ -225,6 +230,8 @@ const CasinoDetail = () => {
         }
 
         const xmlData = await casinoDetailResponse.text();
+        // Log the raw response text BEFORE parsing
+        console.log("[CasinoDetail fetch] Raw response from /pokerlist-api-detail:", xmlData);
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlData, "text/xml");
         const parseError = xmlDoc.querySelector("parsererror");
