@@ -28,6 +28,7 @@ interface CashGame {
   clubname: string;
   clubid: string;
   logoUrl?: string;
+  countryCode?: string;
 }
 
 // --- Helper function to generate a URL-friendly slug ---
@@ -68,9 +69,9 @@ const getAttr = (element: Element | null, attrName: string): string | undefined 
     return element?.getAttribute(attrName) ?? undefined;
 };
 
-// Function to fetch logo for a single club ID
-const fetchLogoForClub = async (clubId: string): Promise<string | undefined> => {
-    console.log(`[fetchLogoForClub] Fetching logo for club ID: ${clubId}`);
+// Function to fetch logo and country code for a single club ID
+const fetchClubDetails = async (clubId: string): Promise<{ logoUrl?: string; countryCode?: string }> => {
+    console.log(`[fetchClubDetails] Fetching details for club ID: ${clubId}`);
     try {
         const response = await fetch('/pokerlist-api-detail', {
             method: 'POST',
@@ -78,19 +79,43 @@ const fetchLogoForClub = async (clubId: string): Promise<string | undefined> => 
             body: `id=${encodeURIComponent(clubId)}`
         });
         if (!response.ok) {
-            console.error(`[fetchLogoForClub] API error for club ${clubId}: Status ${response.status}`);
-            return undefined; // Don't throw, just return undefined
+            console.error(`[fetchClubDetails] API error for club ${clubId}: Status ${response.status}`);
+            return {}; // Return empty object on API error
         }
         const xmlData = await response.text();
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlData, "text/xml");
         const clubElement = xmlDoc.querySelector(`POKERLIST > POKERCLUB[ID="${clubId}"]`);
+
+        if (!clubElement) {
+            console.warn(`[fetchClubDetails] Club element not found for ID ${clubId} in XML.`);
+            return {};
+        }
+
         const logoUrl = getAttr(clubElement, 'LOGOURL');
-        console.log(`[fetchLogoForClub] Found logo for ${clubId}: ${logoUrl}`);
-        return logoUrl;
+        const address = getAttr(clubElement, 'ADDRESS');
+        let countryCode: string | undefined = undefined;
+
+        // Attempt to extract country code (e.g., the last part of the address string)
+        if (address) {
+            const addressParts = address.split(',').map(part => part.trim());
+            // Basic check: Assume country code is 2 letters and the last part
+            // More robust parsing might be needed depending on address format consistency
+            const potentialCode = addressParts[addressParts.length - 1];
+            if (potentialCode && potentialCode.length === 2 && /^[A-Z]{2}$/.test(potentialCode)) {
+                countryCode = potentialCode;
+            }
+             // Add more specific country extraction logic if needed based on typical address formats
+             // For example, if country name is always present:
+             // const countryName = addressParts[addressParts.length - 1];
+             // countryCode = Object.keys(countryCodeToName).find(code => countryCodeToName[code] === countryName);
+        }
+
+        console.log(`[fetchClubDetails] Found details for ${clubId}: logo=${logoUrl}, countryCode=${countryCode}`);
+        return { logoUrl, countryCode };
     } catch (error) {
-        console.error(`[fetchLogoForClub] Failed to fetch/parse logo for club ${clubId}:`, error);
-        return undefined; // Return undefined on any error
+        console.error(`[fetchClubDetails] Failed to fetch/parse details for club ${clubId}:`, error);
+        return {}; // Return empty object on any error
     }
 };
 
@@ -126,20 +151,21 @@ const CashGamesPage = () => {
             const uniqueClubIds = [...new Set(initialCashGames.map(game => game.clubid))];
             console.log("[CashGamesPage useEffect] Unique club IDs:", uniqueClubIds);
 
-            const logoPromises = uniqueClubIds.map(id => fetchLogoForClub(id));
-            const logoUrls = await Promise.all(logoPromises);
+            const logoPromises = uniqueClubIds.map(id => fetchClubDetails(id));
+            const logoInfos = await Promise.all(logoPromises);
 
-            const clubLogoMap = new Map<string, string | undefined>();
+            const clubLogoMap = new Map<string, { logoUrl?: string; countryCode?: string }>();
             uniqueClubIds.forEach((id, index) => {
-                if (logoUrls[index]) {
-                    clubLogoMap.set(id, logoUrls[index]);
+                if (logoInfos[index].logoUrl) {
+                    clubLogoMap.set(id, logoInfos[index]);
                 }
             });
             console.log("[CashGamesPage useEffect] Logo map created:", clubLogoMap);
 
             const gamesWithLogos = initialCashGames.map(game => ({
                 ...game,
-                logoUrl: clubLogoMap.get(game.clubid)
+                logoUrl: clubLogoMap.get(game.clubid)?.logoUrl,
+                countryCode: clubLogoMap.get(game.clubid)?.countryCode
             }));
             setCashGames(gamesWithLogos);
             console.log("[CashGamesPage useEffect] Updated cash games with logos.");
@@ -217,7 +243,7 @@ const CashGamesPage = () => {
                     <Link
                       key={game.id}
                       to={`/casino/${game.clubid}/${slug}`}
-                      state={{ logoUrl: game.logoUrl }}
+                      state={{ logoUrl: game.logoUrl, countryCode: game.countryCode }}
                       className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
                     >
                       <Card

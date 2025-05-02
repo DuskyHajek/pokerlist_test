@@ -346,8 +346,18 @@ const FestivalDetail = () => {
           {/* Details on the right */}
           <div className={`flex flex-col ${festival.club_imgurl ? 'md:col-span-2' : 'md:col-span-3'}`}> {/* Adjust grid span based on image presence */}
             {/* Removed small logo img tag here */}
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">{festival.clubname}</h1>
-            <p className="text-lg text-muted-foreground mb-1">{festival.club_description}</p>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                {festival.clubname}
+            </h1>
+            <p className="text-lg text-muted-foreground mb-1">
+                <Link
+                    to={`/casino/${festival.clubid}/${slugify(festival.club_description || '')}`}
+                    state={{ logoUrl: festival.club_logourl }} // Pass logo URL if available
+                    className="hover:text-primary hover:underline transition-colors"
+                >
+                    {festival.club_description} {/* This should be the casino name */}
+                </Link>
+            </p>
             <p className="text-md text-muted-foreground mb-3">{festival.club_city}</p>
             <p className="text-md font-medium">Duration: {festival.club_event_duration}</p>
           </div>
