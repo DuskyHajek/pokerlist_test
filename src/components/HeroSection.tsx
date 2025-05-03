@@ -35,7 +35,7 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <div className="hero-gradient min-h-[65vh] sm:min-h-[65vh] pt-10 sm:pt-12 pb-8 sm:pb-10 flex flex-col justify-start relative">
+    <div className="hero-gradient min-h-[70vh] sm:min-h-[75vh] pt-10 sm:pt-12 pb-12 sm:pb-16 flex flex-col justify-start relative">
       {/* --- Animated Background Blobs --- */}
       <div className="bg-blob bg-pokerPurple w-40 h-40 sm:w-96 sm:h-96 absolute top-[-20px] left-[-20px] sm:top-[-50px] sm:left-[-100px]" style={{ animationDelay: '0s' }}></div>
       <div className="bg-blob bg-pokerBlue w-48 h-48 sm:w-[500px] sm:h-[500px] absolute bottom-[-40px] right-[-40px] sm:bottom-[-150px] sm:right-[-150px]" style={{ animationDelay: '5s' }}></div>
@@ -85,7 +85,7 @@ const HeroSection = () => {
               style={{ animationDelay: '0.4s' }}
             >
               {/* Download App Button with Dropdown */}
-              <div className="relative w-full sm:w-auto" ref={dropdownRef}>
+              <div className="relative w-full sm:w-auto z-50" ref={dropdownRef}>
                 <button 
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="relative group app-download-button px-5 sm:px-6 py-2.5 sm:py-3 rounded-md text-white font-semibold text-base sm:text-lg inline-flex items-center justify-center overflow-hidden w-full"
@@ -97,7 +97,7 @@ const HeroSection = () => {
                 </button>
                 {/* Dropdown Menu */}
                 <div 
-                  className={`absolute left-0 sm:left-auto sm:right-0 mt-2 w-full sm:w-48 rounded-md shadow-lg bg-background border border-border overflow-hidden transition-all duration-200 origin-top-right ${
+                  className={`absolute left-0 sm:left-auto sm:right-0 mt-2 w-full sm:w-48 rounded-md shadow-lg bg-background border border-border overflow-hidden transition-all duration-200 origin-top-right z-[100] ${
                     isDropdownOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
                   }`}
                 >
