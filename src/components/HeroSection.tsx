@@ -49,13 +49,6 @@ const HeroSection = () => {
     }
   }, [isDropdownOpen]);
 
-  // Add click handler for dropdown links to ensure proper functionality
-  const handleDownloadOptionClick = (e, url) => {
-    e.preventDefault();
-    window.open(url, '_blank', 'noopener,noreferrer');
-    setIsDropdownOpen(false);
-  };
-
   return (
     <div className="hero-gradient min-h-[65vh] sm:min-h-[65vh] pt-10 sm:pt-12 pb-8 sm:pb-10 flex flex-col justify-start relative">
       {/* --- Animated Background Blobs --- */}
@@ -131,20 +124,26 @@ const HeroSection = () => {
                     className="rounded-md shadow-lg bg-background border border-border overflow-hidden transition-all duration-200 origin-top-right"
                   >
                     <div className="py-1">
-                      <button
-                        onClick={(e) => handleDownloadOptionClick(e, "https://play.google.com/store/apps/details?id=com.icreativecompany.pokerlist2")}
+                      <a
+                        href="https://play.google.com/store/apps/details?id=com.icreativecompany.pokerlist2"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="flex items-center px-4 py-2.5 text-sm hover:bg-white/10 transition-colors w-full text-left"
+                        onClick={() => setIsDropdownOpen(false)}
                       >
                         <Smartphone size={16} className="mr-2" />
                         Google Play
-                      </button>
-                      <button
-                        onClick={(e) => handleDownloadOptionClick(e, "https://itunes.apple.com/sk/app/pokerlist/id604977349?mt=8")}
+                      </a>
+                      <a
+                        href="https://itunes.apple.com/sk/app/pokerlist/id604977349?mt=8"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="flex items-center px-4 py-2.5 text-sm hover:bg-white/10 transition-colors w-full text-left"
+                        onClick={() => setIsDropdownOpen(false)}
                       >
                         <Apple size={16} className="mr-2" />
                         App Store
-                      </button>
+                      </a>
                     </div>
                   </div>,
                   document.body
