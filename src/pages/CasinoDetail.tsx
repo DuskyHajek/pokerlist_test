@@ -28,6 +28,7 @@ interface Casino {
   name: string;
   address: string;
   city: string;
+  country?: string;
   latitude?: string;
   longitude?: string;
   contact?: string;
@@ -268,6 +269,7 @@ const CasinoDetail = () => {
             name: casinoName, // Use the determined name
             address: getAttr(clubElement, 'ADDRESS') || '',
             city: getAttr(clubElement, 'CITY') || '',
+            country: getAttr(clubElement, 'COUNTRY'),
             latitude: getAttr(clubElement, 'LATITUDE'),
             longitude: getAttr(clubElement, 'LONGITUDE'),
             contact: getAttr(clubElement, 'CONTACT'),
@@ -281,12 +283,12 @@ const CasinoDetail = () => {
         console.log("[CasinoDetail state] Setting casino state:", casinoDetails);
         setCasino(casinoDetails);
 
-        // Check if countryCode is provided via state
+        // Check if countryCode is provided via state or from API response
         const stateData = location.state as { countryCode?: string; logoUrl?: string } | null;
-        let determinedCountryCode: string | undefined = stateData?.countryCode;
+        let determinedCountryCode: string | undefined = stateData?.countryCode || casinoDetails.country;
         
         if (determinedCountryCode) {
-            console.log(`[CasinoDetail useEffect] Country code from state: ${determinedCountryCode}`);
+            console.log(`[CasinoDetail useEffect] Country code from state or API: ${determinedCountryCode}`);
         } else {
             // Try to determine from address
             const fetchedAddress = casinoDetails.address;
