@@ -235,88 +235,30 @@ const CasinoDetail = () => {
 
         // --- Parse Casino Details ---
         const titleAttr = getAttr(clubElement, 'TITLE') || 'N/A';
-        const descriptionAttr = getAttr(clubElement, 'DESCRIPTION') || '';
-        
         // Always use TITLE for the casino name
         let casinoName = titleAttr;
-        
-        // Extract the last line of the DESCRIPTION as the real description
-        let finalCleanedDescription = '';
-        if (descriptionAttr) {
-            const lines = descriptionAttr.replace(/&#10;/g, '\n').split('\n').map(line => line.trim()).filter(Boolean);
-            if (lines.length > 0) {
-                const lastLine = lines[lines.length - 1];
-                // Only use as description if it doesn't look like contact info
-                if (!/^(Address:|Phone:|E-mail:|Web Page:|Web:|Contact:)/i.test(lastLine) && lastLine !== titleAttr) {
-                    finalCleanedDescription = lastLine;
-                }
-            }
-        }
-        
-        // Use raw attribute data for separate fields
-        const rawAddressAttr = getAttr(clubElement, 'ADDRESS') || '';
-        const rawCityAttr = getAttr(clubElement, 'CITY') || '';
-        const rawContactAttr = getAttr(clubElement, 'CONTACT') || '';
-        const rawUrlAttr = getAttr(clubElement, 'URL') || '';
-        
         // Build the casino details object
         const casinoDetails: Casino = {
             id: getAttr(clubElement, 'ID')!,
             name: casinoName,
-            address: rawAddressAttr,
-            city: rawCityAttr,
+            address: getAttr(clubElement, 'ADDRESS') || '',
+            city: getAttr(clubElement, 'CITY') || '',
             country: getAttr(clubElement, 'COUNTRY'),
             latitude: getAttr(clubElement, 'LATITUDE'),
             longitude: getAttr(clubElement, 'LONGITUDE'),
-            contact: rawContactAttr,
-            url: rawUrlAttr,
+            contact: getAttr(clubElement, 'CONTACT'),
+            url: getAttr(clubElement, 'URL'),
             logo: getAttr(clubElement, 'LOGOURL'),
             size: getAttr(clubElement, 'SIZE'),
             rank: getAttr(clubElement, 'RANK'),
-            description: finalCleanedDescription,
+            description: '', // No longer used
             imgUrl: getAttr(clubElement, 'IMGURL'),
         };
-        
-        // Check if we have logoUrl in state, and if so, use it
-        const stateData = location.state as { countryCode?: string; logoUrl?: string } | null;
-        if (stateData?.logoUrl) {
-            console.log(`[CasinoDetail useEffect] Using logo from state: ${stateData.logoUrl}`);
-            casinoDetails.logo = stateData.logoUrl;
-        }
-        
-        console.log("[CasinoDetail state] Setting casino state:", casinoDetails);
         setCasino(casinoDetails);
 
         // Check if countryCode is provided via state or from API response
-        let determinedCountryCode: string | undefined = stateData?.countryCode || casinoDetails.country;
+        let determinedCountryCode: string | undefined = casinoDetails.country;
         
-        if (determinedCountryCode) {
-            console.log(`[CasinoDetail useEffect] Country code from state or API: ${determinedCountryCode}`);
-        } else {
-            // Try to determine from address
-            const fetchedAddress = casinoDetails.address;
-            const fetchedCity = casinoDetails.city;
-
-            if (fetchedAddress) {
-                const addressParts = fetchedAddress.split(',').map(part => part.trim());
-                const potentialCode = addressParts[addressParts.length - 1];
-                if (potentialCode && potentialCode.length === 2 && /^[A-Z]{2}$/.test(potentialCode)) {
-                    determinedCountryCode = potentialCode;
-                    console.log(`[CasinoDetail useEffect] Country code determined from address: ${determinedCountryCode}`);
-                }
-            }
-
-            if (!determinedCountryCode) {
-                if (fetchedCity === 'Rozvadov') {
-                    determinedCountryCode = 'CZ';
-                    console.log(`[CasinoDetail useEffect] Country code determined from city (${fetchedCity}): ${determinedCountryCode}`);
-                } else if (fetchedCity === 'Šamorín' || fetchedCity === 'Samorin') {
-                    determinedCountryCode = 'SK';
-                    console.log(`[CasinoDetail useEffect] Country code determined from city (${fetchedCity}): ${determinedCountryCode}`);
-                }
-            }
-        }
-
         if (determinedCountryCode) {
             const name = countryCodeToName[determinedCountryCode] || determinedCountryCode;
             setCountryCode(determinedCountryCode);
@@ -647,16 +589,6 @@ const CasinoDetail = () => {
                  </div>
 
                   <div className="space-y-5">
-                    {casino.description && (
-                        <div>
-                            <h3 className="text-sm font-medium text-muted-foreground mb-1.5 flex items-center gap-2">
-                                <Info className="w-4 h-4 flex-shrink-0" /> Description
-                            </h3>
-                            <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                                <p>{casino.description}</p>
-                            </div>
-                        </div>
-                    )}
                     {casino.size && (
                       <div>
                         <h3 className="text-sm font-medium text-muted-foreground mb-1.5">Size Indicator</h3>

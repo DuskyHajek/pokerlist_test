@@ -350,17 +350,7 @@ const FestivalDetail = () => {
                 {festival.clubname}
             </h1>
             <p className="text-lg text-muted-foreground mb-1">
-                <Link
-                    to={`/casino/${festival.clubid}/${slugify(festival.clubname || '')}`}
-                    state={{ 
-                        logoUrl: festival.club_logourl,
-                        // Add countryCode if the city is known
-                        countryCode: festival.club_city === 'Šamorín' || festival.club_city === 'Samorin' ? 'SK' : undefined
-                    }}
-                    className="hover:text-primary hover:underline transition-colors"
-                >
-                    {festival.club_description} {/* This should be the casino name */}
-                </Link>
+                {festival.club_description}
             </p>
             <p className="text-md text-muted-foreground mb-3">{festival.club_city}</p>
             <p className="text-md font-medium">Duration: {festival.club_event_duration}</p>

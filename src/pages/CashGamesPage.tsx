@@ -154,33 +154,28 @@ const CashGamesPage = () => {
                   const slug = createSlug(game.clubname);
 
                   return (
-                    <Link
+                    <Card
                       key={game.id}
-                      to={`/casino/${game.clubid}/${slug}`}
-                      className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
+                      className="card-highlight p-4 flex items-start md:items-center gap-3"
                     >
-                      <Card
-                        className="card-highlight p-4 flex items-start md:items-center gap-3 hover:border-primary/50 transition-colors"
-                      >
-                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-sm text-muted-foreground mt-1 md:mt-0 overflow-hidden border border-border">
-                          {game.clubname.substring(0, 1) || 'P'}
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-sm text-muted-foreground mt-1 md:mt-0 overflow-hidden border border-border">
+                        {game.clubname.substring(0, 1) || 'P'}
+                      </div>
+
+                      <div className="flex-grow flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-2">
+                        <div className="flex-grow">
+                          <div className="text-xs md:text-sm text-primary mb-0.5 md:mb-1 font-medium">{game.clubname}</div>
+                          <h3 className="text-base md:text-lg font-semibold leading-tight">{game.gametype}</h3>
                         </div>
 
-                        <div className="flex-grow flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-2">
-                          <div className="flex-grow">
-                            <div className="text-xs md:text-sm text-primary mb-0.5 md:mb-1 font-medium">{game.clubname}</div>
-                            <h3 className="text-base md:text-lg font-semibold leading-tight">{game.gametype}</h3>
-                          </div>
-
-                          <div className="flex flex-col items-start md:items-end md:flex-row md:items-center gap-1 md:gap-3 text-xs md:text-sm">
-                            <div className="flex items-center gap-2 mt-1 md:mt-0">
-                              <span className="px-2 py-1 text-sm font-bold rounded bg-pokerBlue text-white whitespace-nowrap">{stakes}</span>
-                              <span className="px-2 py-1 text-sm font-semibold rounded bg-pokerPurple text-white whitespace-nowrap">Players: {game.players}</span>
-                            </div>
+                        <div className="flex flex-col items-start md:items-end md:flex-row md:items-center gap-1 md:gap-3 text-xs md:text-sm">
+                          <div className="flex items-center gap-2 mt-1 md:mt-0">
+                            <span className="px-2 py-1 text-sm font-bold rounded bg-pokerBlue text-white whitespace-nowrap">{stakes}</span>
+                            <span className="px-2 py-1 text-sm font-semibold rounded bg-pokerPurple text-white whitespace-nowrap">Players: {game.players}</span>
                           </div>
                         </div>
-                      </Card>
-                    </Link>
+                      </div>
+                    </Card>
                   );
                 })}
               </div>
