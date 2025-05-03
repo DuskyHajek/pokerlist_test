@@ -237,54 +237,47 @@ const CasinoDetail = () => {
         const titleAttr = getAttr(clubElement, 'TITLE') || 'N/A';
         const descriptionAttr = getAttr(clubElement, 'DESCRIPTION') || '';
         
-        // Use title attribute directly as the casino name
+        // Use raw attribute data for separate fields
+        const rawAddressAttr = getAttr(clubElement, 'ADDRESS') || '';
+        const rawCityAttr = getAttr(clubElement, 'CITY') || '';
+        const rawContactAttr = getAttr(clubElement, 'CONTACT') || '';
+        const rawUrlAttr = getAttr(clubElement, 'URL') || '';
+        
+        // More intelligent name extraction from TITLE or first line of DESCRIPTION
         let casinoName = titleAttr;
         
-        // Handle the description more carefully
-        let finalCleanedDescription = '';
-        
+        // The description often contains the proper name of the casino as its first line
+        // Only if the description attribute exists, try to extract a better name
         if (descriptionAttr) {
-            // Replace HTML entities with their text equivalents
-            const rawDescription = descriptionAttr.replace(/&#10;/g, '\n');
-            
-            // Split by lines to better analyze content
-            const lines = rawDescription.split('\n').map(line => line.trim()).filter(line => line);
-            
-            // Find sections to exclude (typically start with Address:, Phone:, etc.)
-            const excludePatterns = [
-                /^Address:/i,
-                /^Phone:/i,
-                /^E-mail:/i,
-                /^Web Page:/i,
-                /^Web:/i,
-                /^Contact:/i
-            ];
-            
-            // Filter out lines that match exclude patterns
-            const contentLines = lines.filter(line => 
-                !excludePatterns.some(pattern => pattern.test(line))
-            );
-            
-            // Rejoin remaining lines
-            finalCleanedDescription = contentLines.join('\n');
-            
-            console.log(`[CasinoDetail parse] Processed description, original length: ${rawDescription.length}, final length: ${finalCleanedDescription.length}`);
+            const lines = descriptionAttr.replace(/&#10;/g, '\n').split('\n').map(line => line.trim()).filter(Boolean);
+            if (lines.length > 0 && lines[0] !== titleAttr) {
+                // Only use the first line as name if it doesn't contain meta information like "Address:" etc.
+                const firstLine = lines[0];
+                if (!/^(Address|Phone|E-mail|Web|Contact|Description):/i.test(firstLine)) {
+                    casinoName = firstLine;
+                    console.log(`[CasinoDetail parse] Using first line of description as name: "${casinoName}"`);
+                }
+            }
         }
-
+        
+        // Keep the description as-is, only replace HTML entities
+        let finalCleanedDescription = descriptionAttr.replace(/&#10;/g, '\n');
+        
+        // Build the casino details object
         const casinoDetails: Casino = {
             id: getAttr(clubElement, 'ID')!,
-            name: casinoName, // Use the determined name
-            address: getAttr(clubElement, 'ADDRESS') || '',
-            city: getAttr(clubElement, 'CITY') || '',
+            name: casinoName,
+            address: rawAddressAttr,
+            city: rawCityAttr,
             country: getAttr(clubElement, 'COUNTRY'),
             latitude: getAttr(clubElement, 'LATITUDE'),
             longitude: getAttr(clubElement, 'LONGITUDE'),
-            contact: getAttr(clubElement, 'CONTACT'),
-            url: getAttr(clubElement, 'URL'),
+            contact: rawContactAttr,
+            url: rawUrlAttr,
             logo: getAttr(clubElement, 'LOGOURL'),
             size: getAttr(clubElement, 'SIZE'),
             rank: getAttr(clubElement, 'RANK'),
-            description: finalCleanedDescription, // Use the finally cleaned description
+            description: finalCleanedDescription,
             imgUrl: getAttr(clubElement, 'IMGURL'),
         };
         
@@ -663,7 +656,22 @@ const CasinoDetail = () => {
                             <h3 className="text-sm font-medium text-muted-foreground mb-1.5 flex items-center gap-2">
                                 <Info className="w-4 h-4 flex-shrink-0" /> Description
                             </h3>
-                            <p className="whitespace-pre-wrap text-sm leading-relaxed">{casino.description}</p>
+                            <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                                {/* Process description to remove address, contact, etc. lines */}
+                                {casino.description.split('\n').map((line, index) => {
+                                    // Skip lines that are contact/address info which we already show elsewhere
+                                    if (/^(Address:|Phone:|E-mail:|Web Page:|Web:|Contact:)/i.test(line.trim())) {
+                                        return null;
+                                    }
+                                    
+                                    // Skip the first line if it's the casino name
+                                    if (index === 0 && line.trim() === casino.name) {
+                                        return null;
+                                    }
+                                    
+                                    return line ? <p key={index}>{line}</p> : <br key={index} />;
+                                })}
+                            </div>
                         </div>
                     )}
                     {casino.size && (
