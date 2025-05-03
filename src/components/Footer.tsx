@@ -84,10 +84,10 @@ const Footer = () => {
         
         <div className="pt-6 sm:pt-8 border-t border-border/30 text-sm text-muted-foreground flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4">
           <p>© {new Date().getFullYear()} PokerList. All rights reserved.</p>
-          <div className="flex space-x-4">
-            <Link to="/terms-of-service" className="text-muted-foreground hover:text-white transition-colors py-1.5">Terms</Link>
-            <Link to="/privacy-policy" className="text-muted-foreground hover:text-white transition-colors py-1.5">Privacy</Link>
-            <Link to="/cookie-policy" className="text-muted-foreground hover:text-white transition-colors py-1.5">Cookies</Link>
+          <div className="flex flex-wrap justify-center gap-4 mt-4 sm:mt-0">
+            <Link to="/terms-of-service" className="text-muted-foreground hover:text-white transition-colors py-2 px-3 text-base sm:text-sm">Terms</Link>
+            <Link to="/privacy-policy" className="text-muted-foreground hover:text-white transition-colors py-2 px-3 text-base sm:text-sm">Privacy</Link>
+            <Link to="/cookie-policy" className="text-muted-foreground hover:text-white transition-colors py-2 px-3 text-base sm:text-sm">Cookies</Link>
           </div>
         </div>
       </div>
