@@ -236,27 +236,12 @@ const CasinoDetail = () => {
         // --- Parse Casino Details ---
         const titleAttr = getAttr(clubElement, 'TITLE') || 'N/A';
         const descriptionAttr = getAttr(clubElement, 'DESCRIPTION') || '';
-        let casinoName = titleAttr; // Default to title
-        let finalCleanedDescription = ''; // Initialize cleaned description
+        
+        // Use title attribute directly as the casino name
+        let casinoName = titleAttr; 
+        let finalCleanedDescription = descriptionAttr.replace(/&#10;/g, '\n');
 
-        const descriptionParts = descriptionAttr.split('&#10;'); // Split by newline entity
-        const firstLineDesc = descriptionParts[0]?.trim();
-
-        if (firstLineDesc && firstLineDesc !== titleAttr) {
-            casinoName = firstLineDesc;
-            console.log(`[CasinoDetail parse] Using first line of description as name: "${casinoName}"`);
-            // Remove the first line and potential following blank lines from original for cleaning
-            let remainingDescription = descriptionAttr.substring(descriptionParts[0].length);
-            remainingDescription = remainingDescription.replace(/^(&#10;\s*)+/, ''); // Remove leading newline entities and whitespace
-            finalCleanedDescription = remainingDescription.replace(/&#10;/g, '\n'); // Replace remaining entities
-        } else {
-             console.log(`[CasinoDetail parse] Using TITLE attribute as name: "${casinoName}"`);
-             // Use the full description, just replace entities
-             finalCleanedDescription = descriptionAttr.replace(/&#10;/g, '\n');
-        }
-
-        // Further clean the description (remove address block if present)
-        // Use finalCleanedDescription here
+        // Clean the description (remove address block if present)
         const addressLineStartIndex = finalCleanedDescription.search(/^Address:/im);
         if (addressLineStartIndex !== -1) {
             const precedingNewlineIndex = finalCleanedDescription.lastIndexOf('\n', addressLineStartIndex -1);
