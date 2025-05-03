@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import ReactDOM from "react-dom";
 import { Card } from "@/components/ui/card";
 import { Download, LayoutGrid, Smartphone, Apple, ChevronDown } from "lucide-react";
 
@@ -7,8 +6,6 @@ const HeroSection = () => {
   const [scrollY, setScrollY] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const dropdownButtonRef = useRef(null);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -36,18 +33,6 @@ const HeroSection = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  // Update dropdown position when opening
-  useEffect(() => {
-    if (isDropdownOpen && dropdownButtonRef.current) {
-      const rect = dropdownButtonRef.current.getBoundingClientRect();
-      setDropdownPosition({
-        top: rect.bottom + window.scrollY,
-        left: rect.left + window.scrollX,
-        width: rect.width,
-      });
-    }
-  }, [isDropdownOpen]);
 
   return (
     <div className="hero-gradient min-h-[65vh] sm:min-h-[65vh] pt-10 sm:pt-12 pb-8 sm:pb-10 flex flex-col justify-start relative">
@@ -102,7 +87,6 @@ const HeroSection = () => {
               {/* Download App Button with Dropdown */}
               <div className="relative w-full sm:w-auto" ref={dropdownRef}>
                 <button 
-                  ref={dropdownButtonRef}
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="relative group app-download-button px-5 sm:px-6 py-2.5 sm:py-3 rounded-md text-white font-semibold text-base sm:text-lg inline-flex items-center justify-center overflow-hidden w-full"
                 >
@@ -111,43 +95,35 @@ const HeroSection = () => {
                   <span className="relative z-10">Download App</span>
                   <ChevronDown size={16} className={`relative z-10 ml-1 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
-                {/* Dropdown Menu rendered in a portal */}
-                {isDropdownOpen && ReactDOM.createPortal(
-                  <div 
-                    style={{
-                      position: 'absolute',
-                      top: dropdownPosition.top,
-                      left: dropdownPosition.left,
-                      width: dropdownPosition.width,
-                      zIndex: 9999,
-                    }}
-                    className="rounded-md shadow-lg bg-background border border-border overflow-hidden transition-all duration-200 origin-top-right"
-                  >
-                    <div className="py-1">
-                      <a
-                        href="https://play.google.com/store/apps/details?id=com.icreativecompany.pokerlist2"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center px-4 py-2.5 text-sm hover:bg-white/10 transition-colors w-full text-left"
-                        onClick={() => setTimeout(() => setIsDropdownOpen(false), 150)}
-                      >
-                        <Smartphone size={16} className="mr-2" />
-                        Google Play
-                      </a>
-                      <a
-                        href="https://apps.apple.com/sk/app/pokerlist-list-of-poker-game/id604977349"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center px-4 py-2.5 text-sm hover:bg-white/10 transition-colors w-full text-left"
-                        onClick={() => setTimeout(() => setIsDropdownOpen(false), 150)}
-                      >
-                        <Apple size={16} className="mr-2" />
-                        App Store
-                      </a>
-                    </div>
-                  </div>,
-                  document.body
-                )}
+                {/* Dropdown Menu */}
+                <div 
+                  className={`absolute left-0 sm:left-auto sm:right-0 mt-2 w-full sm:w-48 rounded-md shadow-lg bg-background border border-border overflow-hidden transition-all duration-200 origin-top-right ${
+                    isDropdownOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+                  }`}
+                >
+                  <div className="py-1">
+                    <a
+                      href="https://play.google.com/store/apps/details?id=com.icreativecompany.pokerlist2"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center px-4 py-2.5 text-sm hover:bg-white/10 transition-colors w-full text-left"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <Smartphone size={16} className="mr-2" />
+                      Google Play
+                    </a>
+                    <a
+                      href="https://apps.apple.com/sk/app/pokerlist-list-of-poker-game/id604977349"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center px-4 py-2.5 text-sm hover:bg-white/10 transition-colors w-full text-left"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <Apple size={16} className="mr-2" />
+                      App Store
+                    </a>
+                  </div>
+                </div>
               </div>
               
               <a 
