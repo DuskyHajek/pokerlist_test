@@ -167,8 +167,10 @@ const formatCurrency = (currencyCode: string) => {
 const CasinoDetail = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
+  // Extract logoUrl from navigation state (from CasinosByCountry)
+  const logoFromState = location.state && (location.state as any).logoUrl ? (location.state as any).logoUrl : undefined;
 
-  console.log(`[CasinoDetail Render] id: ${id}`);
+  console.log(`[CasinoDetail Render] id: ${id}, logoFromState: ${logoFromState}`);
 
   const [casino, setCasino] = useState<Casino | null>(null);
   const [liveTournaments, setLiveTournaments] = useState<LiveTournament[]>([]);
@@ -248,7 +250,7 @@ const CasinoDetail = () => {
             longitude: getAttr(clubElement, 'LONGITUDE'),
             contact: getAttr(clubElement, 'CONTACT'),
             url: getAttr(clubElement, 'URL'),
-            logo: getAttr(clubElement, 'LOGOURL'),
+            logo: undefined, // Do not use API's LOGOURL for the circle logo
             size: getAttr(clubElement, 'SIZE'),
             rank: getAttr(clubElement, 'RANK'),
             description: '', // No longer used
@@ -507,9 +509,9 @@ const CasinoDetail = () => {
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
              <div className="container mx-auto px-4 flex flex-col md:flex-row items-center gap-6 md:gap-8 relative z-10">
                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white/50 bg-muted flex-shrink-0 flex items-center justify-center shadow-lg">
-                 {casino.logo ? (
+                 {logoFromState ? (
                     <img
-                     src={casino.logo}
+                     src={logoFromState}
                      alt={`${casino.name} Logo`}
                      className="w-full h-full object-cover"
                      onError={(e) => {
