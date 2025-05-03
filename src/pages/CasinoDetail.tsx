@@ -164,10 +164,11 @@ const formatCurrency = (currencyCode: string) => {
 };
 
 const CasinoDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id, slug } = useParams<{ id: string; slug?: string }>();
   const location = useLocation();
 
-  console.log(`[CasinoDetail Render] id: ${id}`);
+  console.log(`[CasinoDetail Render] id: ${id}, slug: ${slug}`);
+  console.log(`[CasinoDetail Render] location state:`, location.state);
 
   const [casino, setCasino] = useState<Casino | null>(null);
   const [liveTournaments, setLiveTournaments] = useState<LiveTournament[]>([]);
@@ -232,17 +233,65 @@ const CasinoDetail = () => {
           throw new Error(`Casino with ID ${id} not found in API response.`);
         }
 
-        let rawDescription = getAttr(clubElement, 'DESCRIPTION')?.replace(/&#10;/g, '\n') || '';
-        const addressLineStartIndex = rawDescription.search(/^Address:/im);
-        let cleanedDescription = rawDescription;
-        if (addressLineStartIndex !== -1) {
-            const precedingNewlineIndex = rawDescription.lastIndexOf('\n', addressLineStartIndex -1);
-            const actualStartIndex = (precedingNewlineIndex === -1) ? 0 : precedingNewlineIndex;
-            cleanedDescription = rawDescription.substring(0, actualStartIndex).trim();
+        // --- Parse Casino Details ---
+        const titleAttr = getAttr(clubElement, 'TITLE') || 'N/A';
+        const descriptionAttr = getAttr(clubElement, 'DESCRIPTION') || '';
+        
+        // Get all potential sources for the casino name
+        const stateFromFestival = location.state as { casinoName?: string; logoUrl?: string } | null;
+        const descriptionParts = descriptionAttr.split('&#10;'); // Split by newline entity
+        const firstLineDesc = descriptionParts[0]?.trim();
+        
+        console.log(`[CasinoDetail parse] Name sources:`, { 
+          fromState: stateFromFestival?.casinoName,
+          fromTitle: titleAttr,
+          fromDescFirstLine: firstLineDesc,
+          slugFromURL: slug
+        });
+        
+        // Determine casino name with priority order:
+        // 1. From state (passed from festival page)
+        // 2. From description first line (if different from title)
+        // 3. From title attribute
+        let casinoName: string;
+        let nameSource: string;
+        
+        if (stateFromFestival?.casinoName) {
+            casinoName = stateFromFestival.casinoName;
+            nameSource = 'state';
+        } else if (firstLineDesc && firstLineDesc !== titleAttr) {
+            casinoName = firstLineDesc;
+            nameSource = 'description_first_line';
+        } else {
+            casinoName = titleAttr;
+            nameSource = 'title';
         }
+        
+        console.log(`[CasinoDetail parse] Selected name "${casinoName}" from source: ${nameSource}`);
+        
+        // Clean the description (removing the first line if it was used as name)
+        let finalCleanedDescription = '';
+        if (nameSource === 'description_first_line') {
+            // Remove the first line and potential following blank lines from original for cleaning
+            let remainingDescription = descriptionAttr.substring(descriptionParts[0].length);
+            remainingDescription = remainingDescription.replace(/^(&#10;\s*)+/, ''); // Remove leading newline entities and whitespace
+            finalCleanedDescription = remainingDescription.replace(/&#10;/g, '\n'); // Replace remaining entities
+        } else {
+            // Use the full description, just replace entities
+            finalCleanedDescription = descriptionAttr.replace(/&#10;/g, '\n');
+        }
+
+        // Further clean the description (remove address block if present)
+        const addressLineStartIndex = finalCleanedDescription.search(/^Address:/im);
+        if (addressLineStartIndex !== -1) {
+            const precedingNewlineIndex = finalCleanedDescription.lastIndexOf('\n', addressLineStartIndex -1);
+            const actualStartIndex = (precedingNewlineIndex === -1) ? 0 : precedingNewlineIndex;
+            finalCleanedDescription = finalCleanedDescription.substring(0, actualStartIndex).trim();
+        }
+
         const casinoDetails: Casino = {
             id: getAttr(clubElement, 'ID')!,
-            name: getAttr(clubElement, 'TITLE') || 'N/A',
+            name: casinoName, // Use the determined name
             address: getAttr(clubElement, 'ADDRESS') || '',
             city: getAttr(clubElement, 'CITY') || '',
             latitude: getAttr(clubElement, 'LATITUDE'),
@@ -252,7 +301,7 @@ const CasinoDetail = () => {
             logo: getAttr(clubElement, 'LOGOURL'),
             size: getAttr(clubElement, 'SIZE'),
             rank: getAttr(clubElement, 'RANK'),
-            description: cleanedDescription,
+            description: finalCleanedDescription, // Use the finally cleaned description
             imgUrl: getAttr(clubElement, 'IMGURL'),
         };
         console.log("[CasinoDetail state] Setting casino state:", casinoDetails);

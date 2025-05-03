@@ -153,6 +153,14 @@ const FestivalDetail = () => {
         const otherFestivalsData = grouped.filter(f => f.clubid.toString() !== currentFestivalId);
 
         if (foundFestival) {
+          // Add debug logging
+          console.log('[FestivalDetail] Festival data:', {
+            clubid: foundFestival.clubid,
+            clubname: foundFestival.clubname,
+            club_description: foundFestival.club_description,
+            club_city: foundFestival.club_city
+          });
+          
           setFestival(foundFestival);
           setOtherFestivals(otherFestivalsData); // Set the other festivals
         } else {
@@ -352,10 +360,13 @@ const FestivalDetail = () => {
             <p className="text-lg text-muted-foreground mb-1">
                 <Link
                     to={`/casino/${festival.clubid}/${slugify(festival.club_description || '')}`}
-                    state={{ logoUrl: festival.club_logourl }} // Pass logo URL if available
+                    state={{ 
+                        logoUrl: festival.club_logourl,
+                        casinoName: festival.club_description  // This is the casino name from the festival data
+                    }}
                     className="hover:text-primary hover:underline transition-colors"
                 >
-                    {festival.club_description} {/* This should be the casino name */}
+                    {festival.club_description} {/* This is the casino name */}
                 </Link>
             </p>
             <p className="text-md text-muted-foreground mb-3">{festival.club_city}</p>
