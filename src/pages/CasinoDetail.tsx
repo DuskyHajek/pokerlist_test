@@ -196,19 +196,8 @@ const CasinoDetail = () => {
       setCashGames([]);
       setClubPictures([]);
       setShowAllTournaments(false);
-      
-      // Use passed country code from state if available
-      const passedCountryCode = location.state?.countryCode;
-      if (passedCountryCode) {
-        const name = countryCodeToName[passedCountryCode] || passedCountryCode;
-        setCountryCode(passedCountryCode);
-        setCountryName(name);
-        console.log(`[CasinoDetail useEffect] Using passed country code: Code=${passedCountryCode}, Name=${name}`);
-      } else {
-        setCountryName("Unknown Country");
-        setCountryCode(null);
-        console.log(`[CasinoDetail useEffect] No country code passed in state.`);
-      }
+      setCountryName(null);
+      setCountryCode(null);
 
       try {
         const casinoDetailResponse = await fetch('/pokerlist-api-detail', {
@@ -292,6 +281,48 @@ const CasinoDetail = () => {
         console.log("[CasinoDetail state] Setting casino state:", casinoDetails);
         setCasino(casinoDetails);
 
+        // Check if countryCode is provided via state
+        const stateData = location.state as { countryCode?: string; logoUrl?: string } | null;
+        let determinedCountryCode: string | undefined = stateData?.countryCode;
+        
+        if (determinedCountryCode) {
+            console.log(`[CasinoDetail useEffect] Country code from state: ${determinedCountryCode}`);
+        } else {
+            // Try to determine from address
+            const fetchedAddress = casinoDetails.address;
+            const fetchedCity = casinoDetails.city;
+
+            if (fetchedAddress) {
+                const addressParts = fetchedAddress.split(',').map(part => part.trim());
+                const potentialCode = addressParts[addressParts.length - 1];
+                if (potentialCode && potentialCode.length === 2 && /^[A-Z]{2}$/.test(potentialCode)) {
+                    determinedCountryCode = potentialCode;
+                    console.log(`[CasinoDetail useEffect] Country code determined from address: ${determinedCountryCode}`);
+                }
+            }
+
+            if (!determinedCountryCode) {
+                if (fetchedCity === 'Rozvadov') {
+                    determinedCountryCode = 'CZ';
+                    console.log(`[CasinoDetail useEffect] Country code determined from city (${fetchedCity}): ${determinedCountryCode}`);
+                } else if (fetchedCity === 'Šamorín' || fetchedCity === 'Samorin') {
+                    determinedCountryCode = 'SK';
+                    console.log(`[CasinoDetail useEffect] Country code determined from city (${fetchedCity}): ${determinedCountryCode}`);
+                }
+            }
+        }
+
+        if (determinedCountryCode) {
+            const name = countryCodeToName[determinedCountryCode] || determinedCountryCode;
+            setCountryCode(determinedCountryCode);
+            setCountryName(name);
+            console.log(`[CasinoDetail useEffect] Setting country state: Code=${determinedCountryCode}, Name=${name}`);
+        } else {
+             setCountryName("Unknown Country");
+             setCountryCode(null);
+             console.log(`[CasinoDetail useEffect] Could not determine country.`);
+        }
+
         const tournamentElements = pokerlistElement.querySelectorAll("LIVETOURNAMENTS LIVEPOKER");
         const tournaments: LiveTournament[] = Array.from(tournamentElements).map(el => ({
             id: getAttr(el, 'ID')!,
@@ -349,7 +380,7 @@ const CasinoDetail = () => {
 
     fetchCasinoData();
 
-  }, [id, location.state]);
+  }, [id]);
 
   if (isLoading) {
     return <CasinoDetailSkeleton />;

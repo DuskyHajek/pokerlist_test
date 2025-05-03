@@ -354,8 +354,9 @@ const FestivalDetail = () => {
                     to={`/casino/${festival.clubid}/${slugify(festival.clubname || '')}`}
                     state={{ 
                         logoUrl: festival.club_logourl,
-                        countryCode: festival.club_city === 'Šamorín' ? 'SK' : null
-                    }} // Pass logo URL and country code if known
+                        // Add countryCode if the city is known
+                        countryCode: festival.club_city === 'Šamorín' || festival.club_city === 'Samorin' ? 'SK' : undefined
+                    }}
                     className="hover:text-primary hover:underline transition-colors"
                 >
                     {festival.club_description} {/* This should be the casino name */}
