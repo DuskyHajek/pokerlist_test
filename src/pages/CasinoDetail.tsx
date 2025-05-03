@@ -237,31 +237,27 @@ const CasinoDetail = () => {
         const titleAttr = getAttr(clubElement, 'TITLE') || 'N/A';
         const descriptionAttr = getAttr(clubElement, 'DESCRIPTION') || '';
         
+        // Always use TITLE for the casino name
+        let casinoName = titleAttr;
+        
+        // Extract the last line of the DESCRIPTION as the real description
+        let finalCleanedDescription = '';
+        if (descriptionAttr) {
+            const lines = descriptionAttr.replace(/&#10;/g, '\n').split('\n').map(line => line.trim()).filter(Boolean);
+            if (lines.length > 0) {
+                const lastLine = lines[lines.length - 1];
+                // Only use as description if it doesn't look like contact info
+                if (!/^(Address:|Phone:|E-mail:|Web Page:|Web:|Contact:)/i.test(lastLine) && lastLine !== titleAttr) {
+                    finalCleanedDescription = lastLine;
+                }
+            }
+        }
+        
         // Use raw attribute data for separate fields
         const rawAddressAttr = getAttr(clubElement, 'ADDRESS') || '';
         const rawCityAttr = getAttr(clubElement, 'CITY') || '';
         const rawContactAttr = getAttr(clubElement, 'CONTACT') || '';
         const rawUrlAttr = getAttr(clubElement, 'URL') || '';
-        
-        // More intelligent name extraction from TITLE or first line of DESCRIPTION
-        let casinoName = titleAttr;
-        
-        // The description often contains the proper name of the casino as its first line
-        // Only if the description attribute exists, try to extract a better name
-        if (descriptionAttr) {
-            const lines = descriptionAttr.replace(/&#10;/g, '\n').split('\n').map(line => line.trim()).filter(Boolean);
-            if (lines.length > 0 && lines[0] !== titleAttr) {
-                // Only use the first line as name if it doesn't contain meta information like "Address:" etc.
-                const firstLine = lines[0];
-                if (!/^(Address|Phone|E-mail|Web|Contact|Description):/i.test(firstLine)) {
-                    casinoName = firstLine;
-                    console.log(`[CasinoDetail parse] Using first line of description as name: "${casinoName}"`);
-                }
-            }
-        }
-        
-        // Keep the description as-is, only replace HTML entities
-        let finalCleanedDescription = descriptionAttr.replace(/&#10;/g, '\n');
         
         // Build the casino details object
         const casinoDetails: Casino = {
@@ -657,20 +653,7 @@ const CasinoDetail = () => {
                                 <Info className="w-4 h-4 flex-shrink-0" /> Description
                             </h3>
                             <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                                {/* Process description to remove address, contact, etc. lines */}
-                                {casino.description.split('\n').map((line, index) => {
-                                    // Skip lines that are contact/address info which we already show elsewhere
-                                    if (/^(Address:|Phone:|E-mail:|Web Page:|Web:|Contact:)/i.test(line.trim())) {
-                                        return null;
-                                    }
-                                    
-                                    // Skip the first line if it's the casino name
-                                    if (index === 0 && line.trim() === casino.name) {
-                                        return null;
-                                    }
-                                    
-                                    return line ? <p key={index}>{line}</p> : <br key={index} />;
-                                })}
+                                <p>{casino.description}</p>
                             </div>
                         </div>
                     )}
