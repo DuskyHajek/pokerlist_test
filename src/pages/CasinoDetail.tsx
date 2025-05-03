@@ -167,10 +167,12 @@ const formatCurrency = (currencyCode: string) => {
 const CasinoDetail = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
-  // Extract logoUrl from navigation state (from CasinosByCountry)
+  // Extract logoUrl, countryCode, and countryName from navigation state (from CasinosByCountry)
   const logoFromState = location.state && (location.state as any).logoUrl ? (location.state as any).logoUrl : undefined;
+  const countryCodeFromState = location.state && (location.state as any).countryCode ? (location.state as any).countryCode : undefined;
+  const countryNameFromState = location.state && (location.state as any).countryName ? (location.state as any).countryName : undefined;
 
-  console.log(`[CasinoDetail Render] id: ${id}, logoFromState: ${logoFromState}`);
+  console.log(`[CasinoDetail Render] id: ${id}, logoFromState: ${logoFromState}, countryCodeFromState: ${countryCodeFromState}, countryNameFromState: ${countryNameFromState}`);
 
   const [casino, setCasino] = useState<Casino | null>(null);
   const [liveTournaments, setLiveTournaments] = useState<LiveTournament[]>([]);
@@ -178,8 +180,9 @@ const CasinoDetail = () => {
   const [clubPictures, setClubPictures] = useState<ClubPicture[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [countryName, setCountryName] = useState<string | null>(null);
-  const [countryCode, setCountryCode] = useState<string | null>(null);
+  // Use state from navigation as initial fallback
+  const [countryName, setCountryName] = useState<string | null>(countryNameFromState || null);
+  const [countryCode, setCountryCode] = useState<string | null>(countryCodeFromState || null);
   const [showAllTournaments, setShowAllTournaments] = useState(false);
 
   useEffect(() => {
@@ -259,17 +262,16 @@ const CasinoDetail = () => {
         setCasino(casinoDetails);
 
         // Check if countryCode is provided via state or from API response
-        let determinedCountryCode: string | undefined = casinoDetails.country;
-        
+        let determinedCountryCode: string | undefined = casinoDetails.country || countryCodeFromState;
+        let determinedCountryName: string | undefined = (determinedCountryCode && countryCodeToName[determinedCountryCode]) || countryNameFromState || determinedCountryCode;
         if (determinedCountryCode) {
-            const name = countryCodeToName[determinedCountryCode] || determinedCountryCode;
             setCountryCode(determinedCountryCode);
-            setCountryName(name);
-            console.log(`[CasinoDetail useEffect] Setting country state: Code=${determinedCountryCode}, Name=${name}`);
+            setCountryName(determinedCountryName);
+            console.log(`[CasinoDetail useEffect] Setting country state: Code=${determinedCountryCode}, Name=${determinedCountryName}`);
         } else {
-             setCountryName("Unknown Country");
-             setCountryCode(null);
-             console.log(`[CasinoDetail useEffect] Could not determine country.`);
+            setCountryName("Unknown Country");
+            setCountryCode(null);
+            console.log(`[CasinoDetail useEffect] Could not determine country.`);
         }
 
         const tournamentElements = pokerlistElement.querySelectorAll("LIVETOURNAMENTS LIVEPOKER");
