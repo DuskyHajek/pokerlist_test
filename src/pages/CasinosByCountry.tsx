@@ -48,7 +48,7 @@ const parsePokerClubsXml = (() => {
     let match;
     while ((match = clubRegex.exec(xmlString)) !== null) {
       const attributesString = match[1];
-      const casinoData: Partial<Casino> & { [key: string]: any } = {}; // Use index signature
+      const casinoData: Partial<Casino> & { [key: string]: unknown } = {}; // Use index signature, unknown is safer than any
       let attrMatch;
       while ((attrMatch = attrRegex.exec(attributesString)) !== null) {
         casinoData[attrMatch[1]] = attrMatch[2]; // Store raw attributes
@@ -57,16 +57,16 @@ const parsePokerClubsXml = (() => {
       // Map raw attributes to the Casino interface structure
       if (casinoData['ID']) {
         // Decode HTML entities for relevant fields
-        const decodedName = decodeHtmlEntities(casinoData['TITLE']);
-        const decodedAddress = decodeHtmlEntities(casinoData['ADDRESS']);
-        const decodedCity = decodeHtmlEntities(casinoData['CITY']);
+        const decodedName = decodeHtmlEntities(casinoData['TITLE'] as string);
+        const decodedAddress = decodeHtmlEntities(casinoData['ADDRESS'] as string);
+        const decodedCity = decodeHtmlEntities(casinoData['CITY'] as string);
 
         casinos.push({
-          id: casinoData['ID'],
+          id: casinoData['ID'] as string,
           name: decodedName || 'N/A',
-          countryCode: casinoData['COUNTRY'] || '',
+          countryCode: (casinoData['COUNTRY'] as string) || '',
           description: `${decodedAddress || ''}, ${decodedCity || ''}`.replace(/^, |, $/g, ''), // Combine Address and City
-          logo: casinoData['LOGOURL'] || undefined, // Use undefined if not present
+          logo: (casinoData['LOGOURL'] as string) || undefined, // Use undefined if not present
         });
       }
     }

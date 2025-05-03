@@ -41,6 +41,7 @@ const App = () => {
   const handleAccept = () => {
     setAnalyticsAllowed(true);
     if (!analyticsAllowed) {
+      // No-op: block intentionally left empty for future logic
     }
   };
 

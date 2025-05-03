@@ -17,6 +17,41 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
+// Add this type above the Festival type:
+type FestivalApiItem = {
+  clubid: string | number;
+  clubname: string;
+  club_imgurl: string;
+  club_logourl: string;
+  club_description: string;
+  club_city: string;
+  club_event_duration: string;
+  // Other fields may exist, but these are used
+};
+
+// Add this type above the Festival type:
+type Tournament = {
+  tid: string | number;
+  title: string;
+  startdate: string;
+  starttime: string;
+  buyin: string;
+  guaranteed?: string | number;
+  currency?: string;
+};
+
+// Add this type at the top (after imports):
+type Festival = {
+  clubid: string | number;
+  clubname: string;
+  club_imgurl: string;
+  club_logourl: string;
+  club_description: string;
+  club_city: string;
+  club_event_duration: string;
+  tournaments: Tournament[];
+};
+
 // --- Skeleton Component for Event Card ---
 const EventCardSkeleton = () => (
   <Card className="card-highlight p-6 flex flex-col md:flex-row gap-6 animate-pulse">
@@ -46,7 +81,7 @@ const EventCardSkeleton = () => (
 
 const Events = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<Festival[]>([]);
 
   useEffect(() => {
     let isMounted = true; // Prevent state update on unmounted component
@@ -70,8 +105,7 @@ const Events = () => {
 
         // Group tournaments by clubid (festival)
         const grouped = Object.values(
-          data.reduce((acc: any, item: any) => {
-            // Basic check for item structure
+          data.reduce((acc: Record<string, Festival>, item: FestivalApiItem) => {
             if (item && item.clubid) {
               if (!acc[item.clubid]) {
                 acc[item.clubid] = {
@@ -85,13 +119,24 @@ const Events = () => {
                   tournaments: [],
                 };
               }
-              acc[item.clubid].tournaments.push(item);
+              // Only push if item has Tournament fields
+              if ('tid' in item && 'title' in item && 'startdate' in item && 'starttime' in item && 'buyin' in item) {
+                acc[item.clubid].tournaments.push({
+                  tid: item.tid as string | number,
+                  title: item.title as string,
+                  startdate: item.startdate as string,
+                  starttime: item.starttime as string,
+                  buyin: item.buyin as string,
+                  guaranteed: item['guaranteed'],
+                  currency: item['currency'],
+                });
+              }
             } else {
               console.warn("Skipping invalid item during grouping:", item);
             }
             return acc;
-          }, {})
-        );
+          }, {} as Record<string, Festival>)
+        ) as Festival[];
 
         setEvents(grouped);
         setIsLoading(false);

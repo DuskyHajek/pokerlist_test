@@ -72,6 +72,13 @@ interface ClubPicture {
     href: string;
 }
 
+// --- Interface for Casino Detail Location State ---
+interface CasinoDetailLocationState {
+  logoUrl?: string;
+  countryCode?: string;
+  countryName?: string;
+}
+
 // --- Skeleton Component (Remains the same) ---
 const CasinoDetailSkeleton = () => (
     <div className="min-h-screen flex flex-col">
@@ -167,10 +174,10 @@ const formatCurrency = (currencyCode: string) => {
 const CasinoDetail = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
-  // Extract logoUrl, countryCode, and countryName from navigation state (from CasinosByCountry)
-  const logoFromState = location.state && (location.state as any).logoUrl ? (location.state as any).logoUrl : undefined;
-  const countryCodeFromState = location.state && (location.state as any).countryCode ? (location.state as any).countryCode : undefined;
-  const countryNameFromState = location.state && (location.state as any).countryName ? (location.state as any).countryName : undefined;
+  const state = location.state as CasinoDetailLocationState | null;
+  const logoFromState = state?.logoUrl;
+  const countryCodeFromState = state?.countryCode;
+  const countryNameFromState = state?.countryName;
 
   console.log(`[CasinoDetail Render] id: ${id}, logoFromState: ${logoFromState}, countryCodeFromState: ${countryCodeFromState}, countryNameFromState: ${countryNameFromState}`);
 
@@ -241,7 +248,7 @@ const CasinoDetail = () => {
         // --- Parse Casino Details ---
         const titleAttr = getAttr(clubElement, 'TITLE') || 'N/A';
         // Always use TITLE for the casino name
-        let casinoName = titleAttr;
+        const casinoName = titleAttr;
         // Build the casino details object
         const casinoDetails: Casino = {
             id: getAttr(clubElement, 'ID')!,
@@ -262,8 +269,8 @@ const CasinoDetail = () => {
         setCasino(casinoDetails);
 
         // Check if countryCode is provided via state or from API response
-        let determinedCountryCode: string | undefined = casinoDetails.country || countryCodeFromState;
-        let determinedCountryName: string | undefined = (determinedCountryCode && countryCodeToName[determinedCountryCode]) || countryNameFromState || determinedCountryCode;
+        const determinedCountryCode: string | undefined = casinoDetails.country || countryCodeFromState;
+        const determinedCountryName: string | undefined = (determinedCountryCode && countryCodeToName[determinedCountryCode]) || countryNameFromState || determinedCountryCode;
         if (determinedCountryCode) {
             setCountryCode(determinedCountryCode);
             setCountryName(determinedCountryName);

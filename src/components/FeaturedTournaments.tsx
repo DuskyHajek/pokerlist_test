@@ -7,6 +7,29 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
+// Add this type above the Festival type:
+type FestivalApiItem = {
+  clubid: string | number;
+  clubname: string;
+  club_imgurl: string;
+  club_logourl: string;
+  club_description: string;
+  club_city: string;
+  club_event_duration: string;
+  // Other fields may exist, but these are used
+};
+
+// Add this type at the top (after imports):
+type Festival = {
+  clubid: string | number;
+  clubname: string;
+  club_imgurl: string;
+  club_logourl: string;
+  club_description: string;
+  club_city: string;
+  club_event_duration: string;
+};
+
 // --- Skeleton Component for Tournament Card ---
 const TournamentCardSkeleton = () => (
   <Card className="tournament-card overflow-hidden h-[380px] flex flex-col relative animate-pulse">
@@ -22,23 +45,9 @@ const TournamentCardSkeleton = () => (
   </Card>
 );
 
-const LoadingSkeleton = () => (
-  <div className="tournament-card animate-pulse">
-    <div className="p-4 space-y-3">
-      <Skeleton className="h-5 w-3/5" />
-      <Skeleton className="h-4 w-4/5" />
-      <Skeleton className="h-4 w-2/5" />
-      <div className="flex space-x-2 pt-1">
-        {/* Match chip style but as Skeleton */}
-        <Skeleton className="h-5 w-20 rounded-full bg-pokerBlue" /> 
-      </div>
-    </div>
-  </div>
-);
-
 const FeaturedTournaments = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [festivals, setFestivals] = useState<any[]>([]);
+  const [festivals, setFestivals] = useState<Festival[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const fetchFestivals = async () => {
@@ -62,8 +71,7 @@ const FeaturedTournaments = () => {
 
       // Group by clubid (festival)
       const grouped = Object.values(
-        data.reduce((acc: any, item: any) => {
-          // Basic check for item structure
+        data.reduce((acc: Record<string, Festival>, item: FestivalApiItem) => {
           if (item && item.clubid) {
             if (!acc[item.clubid]) {
               acc[item.clubid] = {
@@ -80,8 +88,8 @@ const FeaturedTournaments = () => {
             console.warn("Skipping invalid item during grouping:", item);
           }
           return acc;
-        }, {})
-      );
+        }, {} as Record<string, Festival>)
+      ) as Festival[];
 
       setFestivals(grouped);
     } catch (error) {

@@ -43,6 +43,24 @@ interface Festival {
   tournaments: Tournament[];
 }
 
+// Add this type above the Festival type:
+type FestivalApiItem = {
+  clubid: string | number;
+  clubname: string;
+  club_imgurl: string;
+  club_logourl: string;
+  club_description: string;
+  club_city: string;
+  club_event_duration: string;
+  tid?: string | number;
+  title?: string;
+  startdate?: string;
+  starttime?: string;
+  buyin?: string;
+  guaranteed?: string | number;
+  currency?: string;
+};
+
 // --- Helper Function ---
 /*
 const slugify = (text: string): string => {
@@ -114,7 +132,7 @@ const FestivalDetail = () => {
         const grouped = Object.values<
           Festival // Explicitly type the accumulator result
         >(
-          data.reduce((acc: { [key: string]: Festival }, item: any) => {
+          data.reduce((acc: Record<string, Festival>, item: FestivalApiItem) => {
             if (item && item.clubid) {
               const currentClubId = item.clubid.toString(); // Ensure consistent key type
               if (!acc[currentClubId]) {

@@ -165,7 +165,7 @@ const PrivacyPolicy = () => {
               <p>If you have any questions about this Privacy Policy, please contact us:</p>
               <ul className="list-disc pl-6 space-y-2 mt-3">
                 <li>By email: <a href="mailto:info@pokerlist.com" className="text-primary hover:underline">info@pokerlist.com</a></li>
-                <li>By visiting this page on our website: <a href="https://www.pokerlist.com/contact" className="text-primary hover:underline">www.pokerlist.com/contact</a> (if applicable, otherwise remove)</li>
+              
               </ul>
             </div>
           </div>
