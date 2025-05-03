@@ -129,17 +129,17 @@ const HeroSection = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center px-4 py-2.5 text-sm hover:bg-white/10 transition-colors w-full text-left"
-                        onClick={() => setIsDropdownOpen(false)}
+                        onClick={() => setTimeout(() => setIsDropdownOpen(false), 150)}
                       >
                         <Smartphone size={16} className="mr-2" />
                         Google Play
                       </a>
                       <a
-                        href="https://itunes.apple.com/sk/app/pokerlist/id604977349?mt=8"
+                        href="https://apps.apple.com/sk/app/pokerlist-list-of-poker-game/id604977349"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center px-4 py-2.5 text-sm hover:bg-white/10 transition-colors w-full text-left"
-                        onClick={() => setIsDropdownOpen(false)}
+                        onClick={() => setTimeout(() => setIsDropdownOpen(false), 150)}
                       >
                         <Apple size={16} className="mr-2" />
                         App Store
