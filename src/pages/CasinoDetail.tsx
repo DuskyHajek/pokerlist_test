@@ -238,15 +238,37 @@ const CasinoDetail = () => {
         const descriptionAttr = getAttr(clubElement, 'DESCRIPTION') || '';
         
         // Use title attribute directly as the casino name
-        let casinoName = titleAttr; 
-        let finalCleanedDescription = descriptionAttr.replace(/&#10;/g, '\n');
-
-        // Clean the description (remove address block if present)
-        const addressLineStartIndex = finalCleanedDescription.search(/^Address:/im);
-        if (addressLineStartIndex !== -1) {
-            const precedingNewlineIndex = finalCleanedDescription.lastIndexOf('\n', addressLineStartIndex -1);
-            const actualStartIndex = (precedingNewlineIndex === -1) ? 0 : precedingNewlineIndex;
-            finalCleanedDescription = finalCleanedDescription.substring(0, actualStartIndex).trim();
+        let casinoName = titleAttr;
+        
+        // Handle the description more carefully
+        let finalCleanedDescription = '';
+        
+        if (descriptionAttr) {
+            // Replace HTML entities with their text equivalents
+            const rawDescription = descriptionAttr.replace(/&#10;/g, '\n');
+            
+            // Split by lines to better analyze content
+            const lines = rawDescription.split('\n').map(line => line.trim()).filter(line => line);
+            
+            // Find sections to exclude (typically start with Address:, Phone:, etc.)
+            const excludePatterns = [
+                /^Address:/i,
+                /^Phone:/i,
+                /^E-mail:/i,
+                /^Web Page:/i,
+                /^Web:/i,
+                /^Contact:/i
+            ];
+            
+            // Filter out lines that match exclude patterns
+            const contentLines = lines.filter(line => 
+                !excludePatterns.some(pattern => pattern.test(line))
+            );
+            
+            // Rejoin remaining lines
+            finalCleanedDescription = contentLines.join('\n');
+            
+            console.log(`[CasinoDetail parse] Processed description, original length: ${rawDescription.length}, final length: ${finalCleanedDescription.length}`);
         }
 
         const casinoDetails: Casino = {
@@ -265,11 +287,18 @@ const CasinoDetail = () => {
             description: finalCleanedDescription, // Use the finally cleaned description
             imgUrl: getAttr(clubElement, 'IMGURL'),
         };
+        
+        // Check if we have logoUrl in state, and if so, use it
+        const stateData = location.state as { countryCode?: string; logoUrl?: string } | null;
+        if (stateData?.logoUrl) {
+            console.log(`[CasinoDetail useEffect] Using logo from state: ${stateData.logoUrl}`);
+            casinoDetails.logo = stateData.logoUrl;
+        }
+        
         console.log("[CasinoDetail state] Setting casino state:", casinoDetails);
         setCasino(casinoDetails);
 
         // Check if countryCode is provided via state or from API response
-        const stateData = location.state as { countryCode?: string; logoUrl?: string } | null;
         let determinedCountryCode: string | undefined = stateData?.countryCode || casinoDetails.country;
         
         if (determinedCountryCode) {
