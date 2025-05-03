@@ -164,11 +164,10 @@ const formatCurrency = (currencyCode: string) => {
 };
 
 const CasinoDetail = () => {
-  const { id, slug } = useParams<{ id: string; slug?: string }>();
+  const { id } = useParams<{ id: string }>();
   const location = useLocation();
 
-  console.log(`[CasinoDetail Render] id: ${id}, slug: ${slug}`);
-  console.log(`[CasinoDetail Render] location state:`, location.state);
+  console.log(`[CasinoDetail Render] id: ${id}`);
 
   const [casino, setCasino] = useState<Casino | null>(null);
   const [liveTournaments, setLiveTournaments] = useState<LiveTournament[]>([]);
@@ -197,8 +196,19 @@ const CasinoDetail = () => {
       setCashGames([]);
       setClubPictures([]);
       setShowAllTournaments(false);
-      setCountryName(null);
-      setCountryCode(null);
+      
+      // Use passed country code from state if available
+      const passedCountryCode = location.state?.countryCode;
+      if (passedCountryCode) {
+        const name = countryCodeToName[passedCountryCode] || passedCountryCode;
+        setCountryCode(passedCountryCode);
+        setCountryName(name);
+        console.log(`[CasinoDetail useEffect] Using passed country code: Code=${passedCountryCode}, Name=${name}`);
+      } else {
+        setCountryName("Unknown Country");
+        setCountryCode(null);
+        console.log(`[CasinoDetail useEffect] No country code passed in state.`);
+      }
 
       try {
         const casinoDetailResponse = await fetch('/pokerlist-api-detail', {
@@ -236,52 +246,27 @@ const CasinoDetail = () => {
         // --- Parse Casino Details ---
         const titleAttr = getAttr(clubElement, 'TITLE') || 'N/A';
         const descriptionAttr = getAttr(clubElement, 'DESCRIPTION') || '';
-        
-        // Get all potential sources for the casino name
-        const stateFromFestival = location.state as { casinoName?: string; logoUrl?: string } | null;
+        let casinoName = titleAttr; // Default to title
+        let finalCleanedDescription = ''; // Initialize cleaned description
+
         const descriptionParts = descriptionAttr.split('&#10;'); // Split by newline entity
         const firstLineDesc = descriptionParts[0]?.trim();
-        
-        console.log(`[CasinoDetail parse] Name sources:`, { 
-          fromState: stateFromFestival?.casinoName,
-          fromTitle: titleAttr,
-          fromDescFirstLine: firstLineDesc,
-          slugFromURL: slug
-        });
-        
-        // Determine casino name with priority order:
-        // 1. From state (passed from festival page)
-        // 2. From description first line (if different from title)
-        // 3. From title attribute
-        let casinoName: string;
-        let nameSource: string;
-        
-        if (stateFromFestival?.casinoName) {
-            casinoName = stateFromFestival.casinoName;
-            nameSource = 'state';
-        } else if (firstLineDesc && firstLineDesc !== titleAttr) {
+
+        if (firstLineDesc && firstLineDesc !== titleAttr) {
             casinoName = firstLineDesc;
-            nameSource = 'description_first_line';
-        } else {
-            casinoName = titleAttr;
-            nameSource = 'title';
-        }
-        
-        console.log(`[CasinoDetail parse] Selected name "${casinoName}" from source: ${nameSource}`);
-        
-        // Clean the description (removing the first line if it was used as name)
-        let finalCleanedDescription = '';
-        if (nameSource === 'description_first_line') {
+            console.log(`[CasinoDetail parse] Using first line of description as name: "${casinoName}"`);
             // Remove the first line and potential following blank lines from original for cleaning
             let remainingDescription = descriptionAttr.substring(descriptionParts[0].length);
             remainingDescription = remainingDescription.replace(/^(&#10;\s*)+/, ''); // Remove leading newline entities and whitespace
             finalCleanedDescription = remainingDescription.replace(/&#10;/g, '\n'); // Replace remaining entities
         } else {
-            // Use the full description, just replace entities
-            finalCleanedDescription = descriptionAttr.replace(/&#10;/g, '\n');
+             console.log(`[CasinoDetail parse] Using TITLE attribute as name: "${casinoName}"`);
+             // Use the full description, just replace entities
+             finalCleanedDescription = descriptionAttr.replace(/&#10;/g, '\n');
         }
 
         // Further clean the description (remove address block if present)
+        // Use finalCleanedDescription here
         const addressLineStartIndex = finalCleanedDescription.search(/^Address:/im);
         if (addressLineStartIndex !== -1) {
             const precedingNewlineIndex = finalCleanedDescription.lastIndexOf('\n', addressLineStartIndex -1);
@@ -306,37 +291,6 @@ const CasinoDetail = () => {
         };
         console.log("[CasinoDetail state] Setting casino state:", casinoDetails);
         setCasino(casinoDetails);
-
-        let determinedCountryCode: string | undefined = undefined;
-        const fetchedAddress = casinoDetails.address;
-        const fetchedCity = casinoDetails.city;
-
-        if (fetchedAddress) {
-            const addressParts = fetchedAddress.split(',').map(part => part.trim());
-            const potentialCode = addressParts[addressParts.length - 1];
-            if (potentialCode && potentialCode.length === 2 && /^[A-Z]{2}$/.test(potentialCode)) {
-                determinedCountryCode = potentialCode;
-                console.log(`[CasinoDetail useEffect] Country code determined from address: ${determinedCountryCode}`);
-            }
-        }
-
-        if (!determinedCountryCode) {
-            if (fetchedCity === 'Rozvadov') {
-                determinedCountryCode = 'CZ';
-                console.log(`[CasinoDetail useEffect] Country code determined from city (${fetchedCity}): ${determinedCountryCode}`);
-            }
-        }
-
-        if (determinedCountryCode) {
-            const name = countryCodeToName[determinedCountryCode] || determinedCountryCode;
-            setCountryCode(determinedCountryCode);
-            setCountryName(name);
-            console.log(`[CasinoDetail useEffect] Setting country state: Code=${determinedCountryCode}, Name=${name}`);
-        } else {
-             setCountryName("Unknown Country");
-             setCountryCode(null);
-             console.log(`[CasinoDetail useEffect] Could not determine country.`);
-        }
 
         const tournamentElements = pokerlistElement.querySelectorAll("LIVETOURNAMENTS LIVEPOKER");
         const tournaments: LiveTournament[] = Array.from(tournamentElements).map(el => ({
@@ -395,7 +349,7 @@ const CasinoDetail = () => {
 
     fetchCasinoData();
 
-  }, [id]);
+  }, [id, location.state]);
 
   if (isLoading) {
     return <CasinoDetailSkeleton />;
