@@ -95,33 +95,64 @@ const HeroSection = () => {
                   <span className="relative z-10">Download App</span>
                   <ChevronDown size={16} className={`relative z-10 ml-1 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
-                {/* Dropdown Menu */}
-                <div 
-                  className={`absolute left-0 sm:left-auto sm:right-0 mt-2 w-full sm:w-48 rounded-md shadow-lg bg-background border border-border overflow-hidden transition-all duration-200 origin-top-right z-[100] ${
-                    isDropdownOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
-                  }`}
-                >
-                  <div className="py-1">
-                    <a
+                {/* Mobile: Expandable Menu, Desktop: Dropdown Menu */}
+                <div className={`z-[100] transition-all duration-300 ${
+                  isDropdownOpen ? 'visible opacity-100' : 'invisible opacity-0'
+                }`}>
+                  {/* Mobile View - Stack vertically below button */}
+                  <div className={`mt-2 space-y-2 sm:hidden ${
+                    isDropdownOpen ? 'max-h-[120px] opacity-100' : 'max-h-0 opacity-0'
+                  } overflow-hidden transition-all duration-300`}>
+                    <a 
                       href="https://play.google.com/store/apps/details?id=com.icreativecompany.pokerlist2"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center px-4 py-2.5 text-sm hover:bg-white/10 transition-colors w-full text-left"
+                      className="bg-pokerPurple/20 hover:bg-pokerPurple/30 px-4 py-2.5 rounded-md text-white font-medium inline-flex items-center w-full transition-colors"
                       onClick={() => setIsDropdownOpen(false)}
                     >
-                      <Smartphone size={16} className="mr-2" />
+                      <Smartphone size={18} className="mr-2" />
                       Google Play
                     </a>
-                    <a
+                    <a 
                       href="https://apps.apple.com/sk/app/pokerlist-list-of-poker-game/id604977349"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center px-4 py-2.5 text-sm hover:bg-white/10 transition-colors w-full text-left"
+                      className="bg-pokerBlue/20 hover:bg-pokerBlue/30 px-4 py-2.5 rounded-md text-white font-medium inline-flex items-center w-full transition-colors"
                       onClick={() => setIsDropdownOpen(false)}
                     >
-                      <Apple size={16} className="mr-2" />
+                      <Apple size={18} className="mr-2" />
                       App Store
                     </a>
+                  </div>
+                  
+                  {/* Desktop View - Traditional Dropdown */}
+                  <div 
+                    className={`hidden sm:block absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-background border border-border overflow-hidden transition-all duration-200 origin-top-right ${
+                      isDropdownOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+                    }`}
+                  >
+                    <div className="py-1">
+                      <a
+                        href="https://play.google.com/store/apps/details?id=com.icreativecompany.pokerlist2"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center px-4 py-2.5 text-sm hover:bg-white/10 transition-colors w-full text-left"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <Smartphone size={16} className="mr-2" />
+                        Google Play
+                      </a>
+                      <a
+                        href="https://apps.apple.com/sk/app/pokerlist-list-of-poker-game/id604977349"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center px-4 py-2.5 text-sm hover:bg-white/10 transition-colors w-full text-left"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <Apple size={16} className="mr-2" />
+                        App Store
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
