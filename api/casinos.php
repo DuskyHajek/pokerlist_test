@@ -19,19 +19,23 @@ $cacheTime = 300; // 5 minutes cache duration
 
 $url = null;
 $cacheFile = null;
+$requestMethod = 'GET'; // Default to GET for list requests
+$postData = null;
 
 // --- Determine Request Type and Build URL ---
 
 // Check for Detail request (by ID)
 if (isset($_POST['id']) && !empty($_POST['id'])) {
     $id = filter_input(INPUT_POST, 'id', FILTER_SANITIZE_STRING);
-    $url = $baseUrlDetail . '?cid=' . urlencode($clientId . '-detail') . '&id=' . urlencode($id);
+    $url = $baseUrlDetail; // URL without query params for POST
+    $requestMethod = 'POST'; // Use POST for detail
+    $postData = 'cid=' . urlencode($clientId . '-detail') . '&id=' . urlencode($id); // Prepare POST body
     $cacheFile = $cacheDir . '/casino_detail_' . preg_replace('/[^a-zA-Z0-9_-]/', '', $id) . '.xml';
 }
 // Check for List request (by Country)
 elseif (isset($_POST['country']) && !empty($_POST['country'])) {
     $countryCode = filter_input(INPUT_POST, 'country', FILTER_SANITIZE_STRING);
-    $url = $baseUrlList . '?cid=' . urlencode($clientId . '-list') . '&country=' . urlencode($countryCode);
+    $url = $baseUrlList . '?cid=' . urlencode($clientId . '-list') . '&country=' . urlencode($countryCode); // Keep GET for list
     $cacheFile = $cacheDir . '/casinos_' . preg_replace('/[^a-zA-Z0-9_-]/', '', $countryCode) . '.xml';
 }
 // Invalid request
@@ -61,9 +65,11 @@ if (!$url) {
 
 $options = [
     'http' => [
-        'method' => 'GET', // PokerList endpoints use GET
+        'method' => $requestMethod, // Use dynamic method
         'header' => "User-Agent: PokerListWebAppProxy/1.0\r\n" .
-                    "Accept: application/xml,text/xml,*/*;q=0.8\r\n",
+                    "Accept: application/xml,text/xml,*/*;q=0.8\r\n" .
+                    ($requestMethod === 'POST' ? "Content-Type: application/x-www-form-urlencoded\r\n" : ""), // Add Content-Type for POST
+        'content' => $postData, // Add POST data if available
         'timeout' => 10, // Set a timeout (e.g., 10 seconds)
         'ignore_errors' => true // Allows fetching content even on 4xx/5xx errors to check response body
     ]
