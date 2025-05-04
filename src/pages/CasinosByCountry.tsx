@@ -264,7 +264,7 @@ const CasinosByCountry = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch('/pokerlist-api', {
+        const response = await fetch('/api/casinos.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: `country=${encodeURIComponent(countryCode)}`

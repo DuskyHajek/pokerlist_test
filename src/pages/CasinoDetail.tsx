@@ -213,7 +213,7 @@ const CasinoDetail = () => {
       setCountryCode(null);
 
       try {
-        const casinoDetailResponse = await fetch('/pokerlist-api-detail', {
+        const casinoDetailResponse = await fetch('/api/casinos.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: `id=${encodeURIComponent(id)}`
