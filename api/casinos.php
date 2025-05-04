@@ -79,6 +79,7 @@ if ($response !== FALSE && strpos($http_status, ' 2') !== false) {
     }
     // Output the response
     echo $response;
+    exit;
 } else {
     // Fetch failed or returned non-2xx status
     http_response_code(502); // Bad Gateway seems appropriate
