@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 0);
+error_reporting(0);
+
 // Set content type to XML as the source provides XML
 header('Content-Type: application/xml; charset=utf-8');
 
