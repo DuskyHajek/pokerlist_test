@@ -53,7 +53,8 @@ const Casinos = () => {
         // Process countries sequentially to avoid overwhelming the API
         for (const country of updatedCountries) {
           try {
-            const response = await fetch('/pokerlist-api', {
+            const externalApiBaseUrl = import.meta.env.VITE_EXTERNAL_API_BASE_URL;
+            const response = await fetch(externalApiBaseUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
               body: `country=${encodeURIComponent(country.code)}`
